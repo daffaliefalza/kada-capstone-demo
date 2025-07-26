@@ -44,15 +44,15 @@ const LandingPage = () => {
               <h1 className="text-5xl text-black font-medium mb-6 leading-tight">
                 Ace Interviews with <br />
                 <span className='text-transparent bg-clip-text bg-[radial-gradient(circle,_#FF9324_0%,_#FCD760_100%)] bg-[length:200%_200%] animate-text-shine font-semibold'>
-                  AI-Powered
-                </span>{""}
+                AI-Powered 
+                </span>{" "}
                 Learning
               </h1>
             </div>
 
             <div className='w-full md:w-1/2'>
               <p className='text-[17px] text-gray-900 mr-0 md:mr-20 mb-6'>
-                Get roole-specific questions, expand answers when you need them,
+                Get role-specific questions, expand answers when you need them,
                 dive deeper into concepts, and organize everything in your way,
                 From preparation too mastery - your ultimate interview toolkit is here.
               </p>
@@ -116,7 +116,7 @@ const LandingPage = () => {
           </div>
         </div >
         <div className='text-sm bg-gray-50 text-secondary text-center p-5 mt-5'>
-          Made by deadlinewarrior
+          Made by Deadline Warrior
         </div>
       </div >
       <Modal
