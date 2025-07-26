@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 
-const SignUp = () => {
+const SignUp = ({setCurrentPage}) => {
+  const [profilePic, setProfilePic] = useState(null)
   return (
     <div>SignUp</div>
   )
