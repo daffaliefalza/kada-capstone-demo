@@ -7,6 +7,7 @@ const connectDB = require("./config/db.js");
 
 const authRoutes = require('./routes/authRoutes');
 const sessionRoutes = require('./routes/sessionRoutes');
+const questionRoutes = require('./routes/questionRoutes');
 
 const app = express();
 
@@ -26,11 +27,15 @@ app.use(express.json());
 
 // routes
 app.use("/api/auth", authRoutes);
-// app.use("/api/sessions", sessionRoutes);
-//app.use("/api/question", questionRoutes);
+app.use("/api/sessions", sessionRoutes);
+app.use("/api/questions", questionRoutes);
+
+// app.use("/api/ai/generate-question", protect, generateInterviewQuestion);
+// app.use("/api/ai/generate-explanation", protect, generateConceptExplanation);
 
 // serve uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 
 // Start server
 const PORT = process.env.PORT || 5000;
