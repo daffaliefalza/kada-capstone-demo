@@ -31,7 +31,7 @@ const UserProvider = ({ children }) => {
             }
         }
 
-        fetchUser()
+        // fetchUser()
     }, [])
 
     const updateUser = (userData) => {
