@@ -1,35 +1,37 @@
-import React, { useState, useContext, useEffect } from 'react'
-import { LuPlus } from 'react-icons/lu'
-import toast from "react-hot-toast"
-import DashboardLayout from '../../components/Layouts/DashboardLayout'
-import axiosInstance from '../../utils/axiosInstance'
-import { useNavigate } from 'react-router-dom'
-import { API_PATHS } from '../../utils/apiPaths'
+import React, { useState, useContext, useEffect } from "react";
+import { LuPlus } from "react-icons/lu";
+import toast from "react-hot-toast";
+import { CARD_BG } from "../../utils/data";
+import DashboardLayout from "../../components/Layouts/DashboardLayout";
+import axiosInstance from "../../utils/axiosInstance";
+import { useNavigate } from "react-router-dom";
+import { API_PATHS } from "../../utils/apiPaths";
+import SummaryCard from "../../components/Cards/SummaryCard";
 
 const Dashboard = () => {
-  const navigate = useNavigate()
-  const [openCreateModal, setOpenCreateModal] = useState(false)
-  const [sessions, setSessions] = useState([])
-  
+  const navigate = useNavigate();
+  const [openCreateModal, setOpenCreateModal] = useState(false);
+  const [sessions, setSessions] = useState([]);
+
   const [openDeleteAlert, setOpenDeleteAlert] = useState({
     open: false,
     data: null,
-  })
+  });
 
   const fetchAllSessions = async () => {
     try {
-      const response = await axiosInstance.get(API_PATHS.SESSION.GET_ALL)
-      setSessions(response.data)
+      const response = await axiosInstance.get(API_PATHS.SESSION.GET_ALL);
+      setSessions(response.data);
     } catch (error) {
-      console.error("Error fetching session data:", error)
+      console.error("Error fetching session data:", error);
     }
-  }
+  };
 
-  const deleteSession = async (sessionData) => {}
+  const deleteSession = async (sessionData) => {};
 
   useEffect(() => {
-    fetchAllSessions()
-  }, [])
+    fetchAllSessions();
+  }, []);
 
   return (
     <DashboardLayout>
@@ -38,6 +40,7 @@ const Dashboard = () => {
           {sessions?.map((data, index) => {
             <SummaryCard
               key={data?._id}
+              colors={CARD_BG[index % CARD_BG.length]}
               role={data?.role || ""}
               topicsToFocus={data?.topicsToFocus || ""}
               experience={data?.experience || "-"}
@@ -45,12 +48,12 @@ const Dashboard = () => {
               description={data?.description || ""}
               lastUpdated={
                 data?.updatedAt
-                  ? moment(data.updatedAt).format("Do MMM YYYY")
+                  ? FaMonument(data.updatedAt).format("Do MMM YYYY")
                   : ""
               }
               onSelect={() => navigate(`/interview-prep/${data?._id}`)}
-              onDelete={() => setOpenDeleteAlert({ open: true, data})}
-            />    
+              onDelete={() => setOpenDeleteAlert({ open: true, data })}
+            />;
           })}
         </div>
         <button
@@ -62,7 +65,7 @@ const Dashboard = () => {
         </button>
       </div>
     </DashboardLayout>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;
