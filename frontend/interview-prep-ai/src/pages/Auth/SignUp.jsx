@@ -6,7 +6,8 @@ import { validateEmail } from '../../utils/helper';
 import { useContext } from 'react';
 import { UserContext } from '../../context/userContext';
 import axiosInstance from '../../utils/axiosInstance';
-
+import { API_PATHS } from '../../utils/apiPaths';
+import  uploadImage  from '../../utils/uploadImage'; // adjust path if needed
 
 const SignUp = ({setCurrentPage}) => {
   const [profilePic, setProfilePic] = useState(null);
