@@ -21,7 +21,7 @@ const UserProvider = ({ children }) => {
 
         const fetchUser = async () => {
             try {
-                const response = await axiosInstance.get.API_PATHS
+                const response = await axiosInstance.get(API_PATHS.AUTH.GET_PROFILE)
                 setUser(response.data)
             } catch (error) {
                 console.error("User not authenticated", error)
@@ -31,7 +31,7 @@ const UserProvider = ({ children }) => {
             }
         }
 
-        // fetchUser()
+        fetchUser()
     }, [])
 
     const updateUser = (userData) => {

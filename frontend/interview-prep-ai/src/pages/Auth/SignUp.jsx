@@ -7,7 +7,7 @@ import { useContext } from 'react';
 import { UserContext } from '../../context/userContext';
 import axiosInstance from '../../utils/axiosInstance';
 import { API_PATHS } from '../../utils/apiPaths';
-import  uploadImage  from '../../utils/uploadImage'; // adjust path if needed
+import  uploadImage  from '../../utils/uploadImage';
 
 const SignUp = ({setCurrentPage}) => {
   const [profilePic, setProfilePic] = useState(null);
@@ -62,7 +62,7 @@ const SignUp = ({setCurrentPage}) => {
         localStorage.setItem("token", token)
         updateUser(response.data)
         navigate("/dashboard")
-      }
+      }   
     } catch (error) {
       if (error.response && error.response.data.message) {
         setError(error.response.data.message);
