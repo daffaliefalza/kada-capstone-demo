@@ -8,6 +8,8 @@ import { useNavigate } from "react-router-dom";
 import { API_PATHS } from "../../utils/apiPaths";
 import moment from "moment";
 import SummaryCard from "../../components/Cards/SummaryCard";
+import Modal from "../../components/Modal";
+import CreateSessionForm from "./CreateSessionForm";
 const Dashboard = () => {
   const navigate = useNavigate();
   const [openCreateModal, setOpenCreateModal] = useState(false);
@@ -67,6 +69,17 @@ const Dashboard = () => {
           Add New
         </button>
       </div>
+
+      <Modal
+        isOpen={openCreateModal}
+        onClose={() => {
+          setOpenCreateModal(false);
+        }}
+      >
+        <div>
+          <CreateSessionForm />
+        </div>
+      </Modal>
     </DashboardLayout>
   );
 };
