@@ -68,7 +68,7 @@ exports.getSessionById = async (req, res) => {
            .status(404)
            .json({ success: false, message: "Session not found" });
        }
-       res.status(200).json(session);
+       res.status(200).json({success: true, session});
     } catch (error) {
         res.status(500).json({ success: false, message: "Server Error" })
     }
