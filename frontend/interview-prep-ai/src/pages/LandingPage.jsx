@@ -21,7 +21,7 @@ const LandingPage = () => {
     if (!user) {
       navigate("/signup"); // Navigate to a dedicated signup page
     } else {
-      navigate("/dashboard");
+      navigate("/features");
     }
   };
 
