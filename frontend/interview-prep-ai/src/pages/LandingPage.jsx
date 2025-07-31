@@ -19,16 +19,14 @@ const LandingPage = () => {
 
   const handleGetStarted = () => {
     if (!user) {
-      setOpenAuthModal(true);
-      setCurrentPage("signup"); // Default to sign up for new users
+      navigate("/signup"); // Navigate to a dedicated signup page
     } else {
       navigate("/dashboard");
     }
   };
 
   const handleLogin = () => {
-    setOpenAuthModal(true);
-    setCurrentPage("login");
+    navigate("/login");
   };
 
   const features = [
@@ -96,12 +94,6 @@ const LandingPage = () => {
               <ProfileInfoCard />
             ) : (
               <div className="flex items-center gap-x-4">
-                {/* <button
-                  onClick={handleLogin}
-                  className="text-sm font-semibold leading-6 text-slate-900 hover:text-indigo-600"
-                >
-                  Log in <span aria-hidden="true">&rarr;</span>
-                </button> */}
                 <button
                   onClick={handleLogin}
                   className="rounded-md cursor-pointer bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
