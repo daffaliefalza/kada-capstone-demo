@@ -9,6 +9,8 @@ import Features from "./pages/Features";
 import Preview from "./pages/qna/Preview";
 import Error from "./components/Error";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Login from "./pages/Auth/Login";
+import SignUp from "./pages/Auth/SignUp";
 
 const App = () => {
   return (
@@ -18,6 +20,9 @@ const App = () => {
           <Routes>
             {/* Default Route */}
             <Route path="/" element={<LandingPage />} />
+
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
 
             {/* Route for not found */}
 
@@ -35,7 +40,6 @@ const App = () => {
             </Route>
           </Routes>
         </Router>
-
         <Toaster
           toastOptions={{
             className: "",
