@@ -14,28 +14,21 @@ const SummaryCard = ({
 }) => {
   return (
     <div
-      className="bg-white border border-gray-300/40 rounded-xl p-2 overflow-hidden cursor-pointer hover:shadow-xl shadow-gray-100 relative group"
+      className="group relative flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer"
       onClick={onSelect}
     >
-      <div
-        className="rounded-lg p-4 cursor-pointer relative"
-        style={{ background: colors.bgcolor }}
-      >
-        <div className="flex items-start">
-          <div className="flex-shrink-0 w-12 h-12 bg-white rounded-md flex items-center justify-center mr-4">
-            <span className="text-lg font-semibold text-black">
-              {getInitials(role)}
-            </span>
-          </div>
-        </div>
-
-        {/* Content Container */}
-        <div className="flex-grow">
-          <div className="flex justify-between items-start">
-            {/* Title and Skills */}
+      {/* Card Header */}
+      <div className="rounded-t-xl p-4" style={{ background: colors.bgcolor }}>
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-12 h-12 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center">
+              <span className="text-xl font-bold text-slate-800">
+                {getInitials(role)}
+              </span>
+            </div>
             <div>
-              <h2 className="text-[17px] font-medium">{role}</h2>
-              <p className="text-xs text-medium text-gray-900">
+              <h2 className="text-base font-bold text-slate-800">{role}</h2>
+              <p className="text-xs text-slate-700/80 font-medium line-clamp-1">
                 {topicsToFocus}
               </p>
             </div>
@@ -43,40 +36,38 @@ const SummaryCard = ({
         </div>
       </div>
 
+      {/* Card Body */}
+      <div className="p-4 flex-grow flex flex-col">
+        <p className="text-xs text-slate-500 flex-grow mb-4 line-clamp-2">
+          {description}
+        </p>
+
+        {/* Info Pills */}
+        <div className="flex flex-wrap gap-2">
+          <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
+            {experience} {experience === 1 ? "Year" : "Years"}
+          </span>
+          <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
+            {questions} Q&A
+          </span>
+        </div>
+      </div>
+
+      {/* Card Footer */}
+      <div className="px-4 py-3 border-t border-slate-100">
+        <p className="text-xs text-slate-400">Last Updated: {lastUpdated}</p>
+      </div>
+
       {/* Delete Button */}
       <button
-        className="hidden group-hover:flex items-center gap-2 text-xs text-rose-500 font-medium bg-rose-50 px-3 py-1 rounded text-nowrap border border-rose-100 hover:border-rose-200 cursor-pointer absolute top-0 right-0"
+        className="absolute top-3 right-3 h-8 w-8 flex items-center justify-center bg-white/50 text-slate-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-rose-50 hover:text-rose-500"
         onClick={(e) => {
-          e.stopPropagation();
+          e.stopPropagation(); // Prevent card's onSelect from firing
           onDelete();
         }}
       >
-        <LuTrash2 />
+        <LuTrash2 className="h-4 w-4" />
       </button>
-
-      {/* Experience Section */}
-      <div className="px-3 pb-3">
-        <div className="flex items-center gap-3 mt-4">
-          <div className="text-[10px] font-medium text-black px-3 py-1 border-[0.5px] border-gray-900 rounded-full">
-            Experiences: {experience} {experience === 1 ? "Year" : "Years"}
-          </div>
-
-          {/* Question Count */}
-          <div className="text-[10px] font-medium text-black px-3 py-1 border-[0.5px] border-gray-900 rounded-full">
-            {questions} Q&A
-          </div>
-
-          {/* Last Updated */}
-          <div className="text-[10px] font-medium text-black px-3 py-1 border-[0.5px] border-gray-900 rounded-full">
-            Last Updated: {lastUpdated}
-          </div>
-
-          {/* Description */}
-          <p className="text-[12px] text-gray-500 font-medium line-clamp-2 mt-3">
-            {description}
-          </p>
-        </div>
-      </div>
     </div>
   );
 };
