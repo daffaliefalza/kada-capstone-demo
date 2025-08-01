@@ -25,7 +25,7 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
 
-  const fetchAllSessions = async (page) => {
+  const fetchAllSessions = async (page = 1) => {
     try {
       const response = await axiosInstance.get(`${API_PATHS.SESSION.GET_ALL}?page=${page}`);
       setSessions(response.data.sessions);
