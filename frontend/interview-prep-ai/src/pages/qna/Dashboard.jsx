@@ -47,12 +47,9 @@ const Dashboard = () => {
     }
   };
 
-
   useEffect(() => {
     fetchAllSessions();
   }, []);
-
-  console.log("Sessions data:", sessions);
 
   return (
     <DashboardLayout>
@@ -111,7 +108,6 @@ const Dashboard = () => {
           />
         </div>
       </Modal>
-
     </DashboardLayout>
   );
 };
