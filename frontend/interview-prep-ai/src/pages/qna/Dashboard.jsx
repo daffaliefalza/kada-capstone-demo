@@ -58,7 +58,7 @@ const Dashboard = () => {
         {/* Header section with Button and Search */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
           <button
-            className="h-10 w-full md:w-auto flex items-center justify-center gap-2 bg-indigo-600 text-sm font-semibold text-white px-6 py-2 rounded-full hover:bg-indigo-700 transition-colors shadow hover:shadow-lg"
+            className="h-10 w-full md:w-auto flex items-center justify-center gap-2 bg-[#EBD6FB] text-sm font-semibold text-purple-900 px-6 py-2 rounded-full hover:bg-purple-200 transition-colors shadow hover:shadow-lg"
             onClick={() => setOpenCreateModal(true)}
           >
             <LuPlus className="text-xl" />
@@ -71,7 +71,6 @@ const Dashboard = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by role..."
-              // CHANGED HERE: Updated focus color to your custom hex code
               className="w-full pl-4 pr-12 py-2 rounded-full bg-white border border-gray-300 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#EBD6FB] focus:border-[#EBD6FB]"
             />
             <button
@@ -147,4 +146,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Dashboard; 
