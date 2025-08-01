@@ -22,7 +22,7 @@ const Features = () => {
       name: "Intelligent Resume Analyzer",
       description: "Get instant feedback to optimize your resume.",
       icon: FiFileText,
-      path: "/features/resume-analyzer",
+      path: "/features/resume",
       bgColor: "bg-purple-500",
     },
     {
