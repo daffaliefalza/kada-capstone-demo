@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { LuPlus } from "react-icons/lu";
 import toast from "react-hot-toast";
 import { CARD_BG } from "../../utils/data";
@@ -11,11 +11,12 @@ import SummaryCard from "../../components/Cards/SummaryCard";
 import Modal from "../../components/Modal";
 import CreateSessionForm from "./CreateSessionForm";
 import DeleteAlertContent from "../../components/DeleteAlertContent";
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [sessions, setSessions] = useState([]);
-
+  const [searchTerm, setSearchTerm] = useState("");
   const [openDeleteAlert, setOpenDeleteAlert] = useState({
     open: false,
     data: null,
@@ -24,7 +25,6 @@ const Dashboard = () => {
   const fetchAllSessions = async () => {
     try {
       const response = await axiosInstance.get(API_PATHS.SESSION.GET_ALL);
-      // console.log("Fetched sessions:", response.data); // 🔍 check this!
       setSessions(response.data);
     } catch (error) {
       console.error("Error fetching session data:", error);
@@ -35,12 +35,7 @@ const Dashboard = () => {
     try {
       await axiosInstance.delete(API_PATHS.SESSION.DELETE(sessionData?._id));
       toast.success("Session Deleted Successfully");
-
-      setOpenDeleteAlert({
-        open: false,
-        data: null,
-      });
-
+      setOpenDeleteAlert({ open: false, data: null });
       fetchAllSessions();
     } catch (error) {
       console.error("Error deleting session data:", error);
@@ -51,11 +46,58 @@ const Dashboard = () => {
     fetchAllSessions();
   }, []);
 
+  // Filtered sessions based on search term
+  const filteredSessions = sessions?.filter((data) =>
+    data?.role?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <DashboardLayout>
-      <div className="container mx-auto pt-4 pb-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-7 pt-1 pb-6 px-4 md:px-4">
-          {sessions?.map((data, index) => (
+      {/* Main content container */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header section with Button and Search */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+          <button
+            className="h-10 w-full md:w-auto flex items-center justify-center gap-2 bg-indigo-600 text-sm font-semibold text-white px-6 py-2 rounded-full hover:bg-indigo-700 transition-colors shadow hover:shadow-lg"
+            onClick={() => setOpenCreateModal(true)}
+          >
+            <LuPlus className="text-xl" />
+            Add New
+          </button>
+
+          <div className="relative w-full max-w-xs">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by role..."
+              // CHANGED HERE: Updated focus color to your custom hex code
+              className="w-full pl-4 pr-12 py-2 rounded-full bg-white border border-gray-300 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#EBD6FB] focus:border-[#EBD6FB]"
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black hover:bg-gray-800 p-1.5 rounded-full"
+            >
+              <svg
+                className="w-4 h-4 text-white"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1 0 5 5a7.5 7.5 0 0 0 11.65 11.65z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Session Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-7">
+          {filteredSessions.map((data, index) => (
             <SummaryCard
               key={data?._id}
               colors={CARD_BG[index % CARD_BG.length]}
@@ -74,31 +116,24 @@ const Dashboard = () => {
             />
           ))}
         </div>
-        <button
-          className="h-12 md:h12 flex items-center justify-center gap-3 bg-linear-to-r from-[#FF9324] to-[#e99a4b] text-sm font-semibold text-white px-7 py-2.5 rounded-full hover:bg-black hover:text-white transition-colors cursor-pointer hover:shadow-2xl hover:shadow-orange-300 fixed bottom-10 md:bottom-20 right-10 md-right-20"
-          onClick={() => setOpenCreateModal(true)}
-        >
-          <LuPlus className="text-2xl text-white" />
-          Add New
-        </button>
       </div>
 
       <Modal
         isOpen={openCreateModal}
-        onClose={() => {
-          setOpenCreateModal(false);
-        }}
+        onClose={() => setOpenCreateModal(false)}
+        title="Create a New Session"
       >
-        <div>
-          <CreateSessionForm />
-        </div>
+        <CreateSessionForm
+          onSuccess={() => {
+            setOpenCreateModal(false);
+            fetchAllSessions();
+          }}
+        />
       </Modal>
 
       <Modal
         isOpen={openDeleteAlert?.open}
-        onClose={() => {
-          setOpenDeleteAlert({ open: false, data: null });
-        }}
+        onClose={() => setOpenDeleteAlert({ open: false, data: null })}
         title="Delete Alert"
       >
         <div className="w-[30vw]">
