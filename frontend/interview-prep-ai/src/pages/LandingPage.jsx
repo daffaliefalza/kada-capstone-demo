@@ -1,14 +1,22 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useRef } from "react"; // Import useRef
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/userContext";
 import { FiCpu, FiFileText, FiMic } from "react-icons/fi";
+
+// GSAP Imports
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
 
 // Components (Make sure paths are correct)
 import Login from "./Auth/Login";
 import SignUp from "./Auth/SignUp";
 import Modal from "../components/Modal";
 import ProfileInfoCard from "./../components/Cards/ProfileInfoCard";
-import HERO_IMG from "../assets/hero-img.png"; // Using the same hero image
+import HERO_IMG from "../assets/hero-img.png";
+
+// Register GSAP plugins
+gsap.registerPlugin(ScrollTrigger);
 
 const LandingPage = () => {
   const { user } = useContext(UserContext);
@@ -17,9 +25,53 @@ const LandingPage = () => {
   const [openAuthModal, setOpenAuthModal] = useState(false);
   const [currentPage, setCurrentPage] = useState("login");
 
+  const container = useRef(); // Create a ref for the main container
+
+  // GSAP Animations using the useGSAP hook
+  useGSAP(
+    () => {
+      // --- HERO SECTION ANIMATION ---
+      const tl = gsap.timeline({ defaults: { ease: "power3.inOut" } });
+
+      tl.from(".hero__heading", { opacity: 0, y: 30, duration: 0.8 })
+        .from(".hero__paragraph", { opacity: 0, y: 20, duration: 0.6 }, "-=0.4")
+        .from(".hero__buttons", { opacity: 0, y: 20, duration: 0.5 }, "-=0.3")
+        .from(".hero__image", { opacity: 0, y: 40, duration: 1 }, "-=0.5");
+
+      // --- FEATURES SECTION (Scroll-triggered) ---
+      gsap.from(".feature-card", {
+        scrollTrigger: {
+          trigger: "#features",
+          start: "top 70%", // Start animation when the top of the trigger hits 70% of the viewport height
+          toggleActions: "play none none none",
+        },
+        opacity: 0,
+        y: 50,
+        stagger: 0.2, // Animate each card with a 0.2s delay
+        duration: 0.8,
+        ease: "power3.out",
+      });
+
+      // --- GUIDELINES SECTION (Scroll-triggered) ---
+      gsap.from(".guideline-step", {
+        scrollTrigger: {
+          trigger: "#guidelines",
+          start: "top 70%",
+          toggleActions: "play none none none",
+        },
+        opacity: 0,
+        x: -50,
+        stagger: 0.25,
+        duration: 0.7,
+        ease: "power2.out",
+      });
+    },
+    { scope: container } // Scope animations to the container ref
+  );
+
   const handleGetStarted = () => {
     if (!user) {
-      navigate("/signup"); // Navigate to a dedicated signup page
+      navigate("/signup");
     } else {
       navigate("/features");
     }
@@ -50,7 +102,6 @@ const LandingPage = () => {
     },
   ];
 
-  // Data for the new Guidelines section
   const guidelines = [
     {
       name: "Upload Your Resume & Job Description",
@@ -76,7 +127,9 @@ const LandingPage = () => {
 
   return (
     <>
-      <div className="bg-slate-50">
+      <div className="bg-slate-50" ref={container}>
+        {" "}
+        {/* Attach the ref here */}
         {/* Header */}
         <header className="absolute inset-x-0 top-0 z-50">
           <nav
@@ -104,7 +157,6 @@ const LandingPage = () => {
             )}
           </nav>
         </header>
-
         <main className="relative isolate">
           {/* Hero Section */}
           <div className="relative pt-14">
@@ -123,15 +175,16 @@ const LandingPage = () => {
             <div className="py-24 sm:py-32">
               <div className="mx-auto max-w-7xl px-6 lg:px-8">
                 <div className="mx-auto max-w-2xl text-center">
-                  <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+                  {/* Added classNames for GSAP targeting */}
+                  <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl hero__heading">
                     The Future of Interview Preparation is Here
                   </h1>
-                  <p className="mt-6 text-lg leading-8 text-gray-600">
+                  <p className="mt-6 text-lg leading-8 text-gray-600 hero__paragraph">
                     Our AI-powered platform provides personalized Q&A, in-depth
                     resume analysis, and realistic voice-based mock interviews
                     to give you the ultimate edge.
                   </p>
-                  <div className="mt-10 flex items-center justify-center gap-x-6">
+                  <div className="mt-10 flex items-center justify-center gap-x-6 hero__buttons">
                     <button
                       onClick={handleGetStarted}
                       className="rounded-md cursor-pointer bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
@@ -146,7 +199,8 @@ const LandingPage = () => {
                     </a>
                   </div>
                 </div>
-                <div className="mt-16 flow-root sm:mt-24">
+                {/* Added className for GSAP targeting */}
+                <div className="mt-16 flow-root sm:mt-24 hero__image">
                   <div className="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4">
                     <img
                       src={HERO_IMG}
@@ -161,7 +215,7 @@ const LandingPage = () => {
             </div>
           </div>
 
-          {/* Features Section */}
+          {/* Features Section - Added id="features" to parent div */}
           <div id="features" className="bg-slate-900 py-24 sm:py-32">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
               <div className="mx-auto max-w-2xl lg:text-center">
@@ -180,7 +234,11 @@ const LandingPage = () => {
               <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
                 <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-3 lg:gap-y-16">
                   {features.map((feature) => (
-                    <div key={feature.name} className="relative pl-16">
+                    // Added className for GSAP targeting
+                    <div
+                      key={feature.name}
+                      className="relative pl-16 feature-card"
+                    >
                       <dt className="text-base font-semibold leading-7 text-white">
                         <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600">
                           <feature.icon
@@ -200,8 +258,8 @@ const LandingPage = () => {
             </div>
           </div>
 
-          {/* NEW: Guidelines Section */}
-          <div className="bg-slate-50 py-24 sm:py-32">
+          {/* Guidelines Section - Added id="guidelines" to parent div */}
+          <div id="guidelines" className="bg-slate-50 py-24 sm:py-32">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
               <div className="mx-auto max-w-2xl lg:text-center">
                 <h2 className="text-base font-semibold leading-7 text-indigo-600">
@@ -218,7 +276,11 @@ const LandingPage = () => {
               <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
                 <dl className="grid grid-cols-1 gap-x-8 gap-y-16 text-base leading-7 text-gray-600 sm:grid-cols-2 lg:grid-cols-4">
                   {guidelines.map((guideline, index) => (
-                    <div key={guideline.name} className="flex flex-col">
+                    // Added className for GSAP targeting
+                    <div
+                      key={guideline.name}
+                      className="flex flex-col guideline-step"
+                    >
                       <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-gray-900">
                         <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold">
                           {index + 1}
@@ -235,7 +297,7 @@ const LandingPage = () => {
             </div>
           </div>
 
-          {/* NEW: Final CTA Section */}
+          {/* Final CTA Section */}
           <div className="bg-slate-900">
             <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
               <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
