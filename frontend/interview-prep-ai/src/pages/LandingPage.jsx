@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef } from "react"; // Import useRef
+import React, { useState, useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/userContext";
 import { FiCpu, FiFileText, FiMic } from "react-icons/fi";
@@ -30,29 +30,32 @@ const LandingPage = () => {
   // GSAP Animations using the useGSAP hook
   useGSAP(
     () => {
-      // --- HERO SECTION ANIMATION ---
+      // --- HERO SECTION ON-LOAD ANIMATION ---
       const tl = gsap.timeline({ defaults: { ease: "power3.inOut" } });
-
       tl.from(".hero__heading", { opacity: 0, y: 30, duration: 0.8 })
         .from(".hero__paragraph", { opacity: 0, y: 20, duration: 0.6 }, "-=0.4")
         .from(".hero__buttons", { opacity: 0, y: 20, duration: 0.5 }, "-=0.3")
-        .from(".hero__image", { opacity: 0, y: 40, duration: 1 }, "-=0.5");
+        .from(
+          ".hero__image",
+          { opacity: 0, y: 40, scale: 0.95, duration: 1 },
+          "-=0.5"
+        );
 
-      // --- FEATURES SECTION (Scroll-triggered) ---
+      // --- SCROLL-TRIGGERED FEATURES ---
       gsap.from(".feature-card", {
         scrollTrigger: {
           trigger: "#features",
-          start: "top 70%", // Start animation when the top of the trigger hits 70% of the viewport height
+          start: "top 70%",
           toggleActions: "play none none none",
         },
         opacity: 0,
         y: 50,
-        stagger: 0.2, // Animate each card with a 0.2s delay
+        stagger: 0.2,
         duration: 0.8,
         ease: "power3.out",
       });
 
-      // --- GUIDELINES SECTION (Scroll-triggered) ---
+      // --- SCROLL-TRIGGERED GUIDELINES ---
       gsap.from(".guideline-step", {
         scrollTrigger: {
           trigger: "#guidelines",
@@ -65,6 +68,62 @@ const LandingPage = () => {
         duration: 0.7,
         ease: "power2.out",
       });
+
+      // --- NEW: SCROLL-TRIGGERED FINAL CTA ---
+      const ctaTimeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: ".final-cta",
+          start: "top 75%",
+          toggleActions: "play none none none",
+        },
+      });
+      ctaTimeline
+        .from(".cta-heading", {
+          opacity: 0,
+          y: 30,
+          duration: 0.8,
+          ease: "power3.out",
+        })
+        .from(
+          ".cta-button",
+          { opacity: 0, scale: 0.8, duration: 0.6, ease: "back.out(1.7)" },
+          "-=0.5"
+        );
+
+      // --- NEW: MOUSE-MOVE PARALLAX FOR HERO IMAGE ---
+      const handleMouseMove = (e) => {
+        const { clientX, clientY } = e;
+        const xPercent = (clientX / window.innerWidth - 0.5) * 2;
+        const yPercent = (clientY / window.innerHeight - 0.5) * 2;
+
+        gsap.to(".hero__image", {
+          x: xPercent * 20,
+          y: yPercent * 15,
+          rotationY: xPercent * 5,
+          rotationX: -yPercent * 5,
+          ease: "power1.out",
+          duration: 0.7,
+        });
+      };
+
+      window.addEventListener("mousemove", handleMouseMove);
+
+      // --- NEW: SCROLL PARALLAX FOR HERO BLOB ---
+      gsap.to(".hero__blob", {
+        scrollTrigger: {
+          trigger: ".hero-section-container",
+          start: "top top",
+          end: "bottom top",
+          scrub: 1,
+        },
+        y: 250,
+        ease: "none",
+      });
+
+      // Cleanup function to remove event listener
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove);
+      };
     },
     { scope: container } // Scope animations to the container ref
   );
@@ -128,8 +187,6 @@ const LandingPage = () => {
   return (
     <>
       <div className="bg-slate-50" ref={container}>
-        {" "}
-        {/* Attach the ref here */}
         {/* Header */}
         <header className="absolute inset-x-0 top-0 z-50">
           <nav
@@ -157,15 +214,16 @@ const LandingPage = () => {
             )}
           </nav>
         </header>
+
         <main className="relative isolate">
           {/* Hero Section */}
-          <div className="relative pt-14">
+          <div className="relative pt-14 hero-section-container">
             <div
               className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
               aria-hidden="true"
             >
               <div
-                className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+                className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem] hero__blob"
                 style={{
                   clipPath:
                     "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
@@ -175,7 +233,6 @@ const LandingPage = () => {
             <div className="py-24 sm:py-32">
               <div className="mx-auto max-w-7xl px-6 lg:px-8">
                 <div className="mx-auto max-w-2xl text-center">
-                  {/* Added classNames for GSAP targeting */}
                   <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl hero__heading">
                     The Future of Interview Preparation is Here
                   </h1>
@@ -199,7 +256,6 @@ const LandingPage = () => {
                     </a>
                   </div>
                 </div>
-                {/* Added className for GSAP targeting */}
                 <div className="mt-16 flow-root sm:mt-24 hero__image">
                   <div className="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4">
                     <img
@@ -215,10 +271,10 @@ const LandingPage = () => {
             </div>
           </div>
 
-          {/* Features Section - Added id="features" to parent div */}
+          {/* Features Section */}
           <div id="features" className="bg-slate-900 py-24 sm:py-32">
-            <div className="mx-auto max-w-7xl px-6 lg:px-8">
-              <div className="mx-auto max-w-2xl lg:text-center">
+            <div className="mx-auto max-w-7xl px-6 lg:px-8 ">
+              <div className="mx-auto max-w-2xl lg:text-center hero__heading">
                 <h2 className="text-base font-semibold leading-7 text-indigo-400">
                   Everything You Need
                 </h2>
@@ -234,7 +290,6 @@ const LandingPage = () => {
               <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
                 <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-3 lg:gap-y-16">
                   {features.map((feature) => (
-                    // Added className for GSAP targeting
                     <div
                       key={feature.name}
                       className="relative pl-16 feature-card"
@@ -258,10 +313,10 @@ const LandingPage = () => {
             </div>
           </div>
 
-          {/* Guidelines Section - Added id="guidelines" to parent div */}
+          {/* Guidelines Section */}
           <div id="guidelines" className="bg-slate-50 py-24 sm:py-32">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
-              <div className="mx-auto max-w-2xl lg:text-center">
+              <div className="mx-auto max-w-2xl lg:text-center hero__heading">
                 <h2 className="text-base font-semibold leading-7 text-indigo-600">
                   Your Path to Success
                 </h2>
@@ -276,7 +331,6 @@ const LandingPage = () => {
               <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
                 <dl className="grid grid-cols-1 gap-x-8 gap-y-16 text-base leading-7 text-gray-600 sm:grid-cols-2 lg:grid-cols-4">
                   {guidelines.map((guideline, index) => (
-                    // Added className for GSAP targeting
                     <div
                       key={guideline.name}
                       className="flex flex-col guideline-step"
@@ -298,9 +352,9 @@ const LandingPage = () => {
           </div>
 
           {/* Final CTA Section */}
-          <div className="bg-slate-900">
+          <div className="bg-slate-900 final-cta">
             <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
-              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl cta-heading">
                 Ready to land your dream job?
                 <br />
                 Start preparing with AI today.
@@ -308,7 +362,7 @@ const LandingPage = () => {
               <div className="mt-10 flex items-center gap-x-6">
                 <button
                   onClick={handleGetStarted}
-                  className="rounded-md cursor-pointer bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  className="rounded-md cursor-pointer bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cta-button"
                 >
                   Get Started
                 </button>
