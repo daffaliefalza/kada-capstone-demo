@@ -22,10 +22,15 @@ const Dashboard = () => {
     data: null,
   });
 
-  const fetchAllSessions = async () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+
+  const fetchAllSessions = async (page) => {
     try {
-      const response = await axiosInstance.get(API_PATHS.SESSION.GET_ALL);
-      setSessions(response.data);
+      const response = await axiosInstance.get(`${API_PATHS.SESSION.GET_ALL}?page=${page}`);
+      setSessions(response.data.sessions);
+      setTotalPages(response.data.totalPages);
+      setCurrentPage(response.data.page);
     } catch (error) {
       console.error("Error fetching session data:", error);
     }
@@ -36,29 +41,33 @@ const Dashboard = () => {
       await axiosInstance.delete(API_PATHS.SESSION.DELETE(sessionData?._id));
       toast.success("Session Deleted Successfully");
       setOpenDeleteAlert({ open: false, data: null });
-      fetchAllSessions();
+      fetchAllSessions(currentPage);
     } catch (error) {
       console.error("Error deleting session data:", error);
     }
   };
 
   useEffect(() => {
-    fetchAllSessions();
-  }, []);
+    fetchAllSessions(currentPage);
+  }, [currentPage]);
 
-  // Filtered sessions based on search term
   const filteredSessions = sessions?.filter((data) =>
     data?.role?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
   return (
     <DashboardLayout>
-      {/* Main content container */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header section with Button and Search */}
+        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
           <button
-            className="h-10 w-full md:w-auto flex items-center justify-center gap-2 bg-[#EBD6FB] text-sm font-semibold text-purple-900 px-6 py-2 rounded-full hover:bg-purple-200 transition-colors shadow hover:shadow-lg"
+            className="h-10 w-full md:w-auto flex items-center justify-center gap-2 bg-indigo-600 text-sm font-semibold text-white px-6 py-2 rounded-full hover:bg-indigo-700 transition-colors shadow hover:shadow-lg"
             onClick={() => setOpenCreateModal(true)}
           >
             <LuPlus className="text-xl" />
@@ -94,7 +103,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Session Cards Grid */}
+        {/* Session Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-7">
           {filteredSessions.map((data, index) => (
             <SummaryCard
@@ -115,8 +124,44 @@ const Dashboard = () => {
             />
           ))}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages >= 1 && (
+          <div className="mt-8 flex justify-center items-center space-x-2">
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              Previous
+            </button>
+
+            {Array.from({ length: totalPages }, (_, index) => (
+              <button
+                key={index + 1}
+                onClick={() => goToPage(index + 1)}
+                className={`px-3 py-1 border rounded ${
+                  currentPage === index + 1
+                    ? "bg-indigo-600 text-white"
+                    : "bg-white text-black"
+                }`}
+              >
+                {index + 1}
+              </button>
+            ))}
+
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
+      {/* Create Session Modal */}
       <Modal
         isOpen={openCreateModal}
         onClose={() => setOpenCreateModal(false)}
@@ -125,11 +170,12 @@ const Dashboard = () => {
         <CreateSessionForm
           onSuccess={() => {
             setOpenCreateModal(false);
-            fetchAllSessions();
+            fetchAllSessions(currentPage);
           }}
         />
       </Modal>
 
+      {/* Delete Confirmation Modal */}
       <Modal
         isOpen={openDeleteAlert?.open}
         onClose={() => setOpenDeleteAlert({ open: false, data: null })}
@@ -146,4 +192,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;
