@@ -55,6 +55,58 @@ const Login = () => {
     }
   };
 
+  // Handle Google Login
+  const handleGoogleLogin = () => {
+    // Open Google auth window
+    const authWindow = window.open(
+      'http://localhost:8000/api/auth/login/google',
+      '_blank',
+      'width=500,height=600'
+    );
+
+    // Listen for messages from the popup
+    const handleMessage = (event) => {
+      // Security check - verify origin
+      if (event.origin !== 'http://localhost:8000') return;
+
+      // Check for success message
+      if (event.data.type === 'google-auth-success') {
+        // Close the popup
+        if (authWindow) authWindow.close();
+
+        // Store token in localStorage
+        localStorage.setItem('token', event.data.token);
+        // console.log('Token stored:', localStorage.getItem('token')); // Debug log
+
+        // Update user context
+        updateUser({
+          token: event.data.token,
+          user: {
+            ...event.data.user,
+            // Ensure profileImage is set
+            profileImage: event.data.user.profileImage ||
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(event.data.user.name)}&background=random`
+          }
+        });
+
+        // Navigate to features page
+        navigate('/features', { replace: true });
+      } else if (event.data.error) {
+        setError(event.data.error);
+        if (authWindow) authWindow.close();
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('message', handleMessage);
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      if (authWindow) authWindow.close();
+    };
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen flex items-center justify-center p-4 font-sans">
       <div className="w-full max-w-4xl flex bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -63,20 +115,20 @@ const Login = () => {
           {/* Style for the animation */}
           <style>
             {`
-                    @keyframes gradient-xy {
-                        0%, 100% {
-                            background-size: 400% 400%;
-                            background-position: 10% 0%;
-                        }
-                        50% {
-                            background-size: 200% 200%;
-                            background-position: 91% 100%;
-                        }
-                    }
-                    .animate-gradient-xy {
-                        animation: gradient-xy 15s ease infinite;
-                    }
-                `}
+              @keyframes gradient-xy {
+                0%, 100% {
+                  background-size: 400% 400%;
+                  background-position: 10% 0%;
+                }
+                50% {
+                  background-size: 200% 200%;
+                  background-position: 91% 100%;
+                }
+              }
+              .animate-gradient-xy {
+                animation: gradient-xy 15s ease infinite;
+              }
+            `}
           </style>
 
           <h1 className="text-2xl font-bold text-white z-10">
@@ -177,7 +229,10 @@ const Login = () => {
 
           {/* Social Logins */}
           <div className="flex justify-center gap-4">
-            <button className="h-12 w-12 flex items-center justify-center border border-gray-300 rounded-full hover:bg-gray-50 transition-colors">
+            <button
+              onClick={handleGoogleLogin}
+              className="h-12 w-12 flex items-center justify-center border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+            >
               <FcGoogle size={24} />
             </button>
             <button className="h-12 w-12 flex items-center justify-center border border-gray-300 rounded-full text-blue-600 hover:bg-gray-50 transition-colors">

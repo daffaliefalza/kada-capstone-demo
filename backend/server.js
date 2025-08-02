@@ -10,8 +10,11 @@ const sessionRoutes = require('./routes/sessionRoutes');
 const questionRoutes = require('./routes/questionRoutes');
 const { protect } = require('./middlewares/authMiddleware.js'); 
 const { generateInterviewQuestion, generateConceptExplanation } = require("./controllers/aiController.js");
+const passport = require("passport");
 
 const app = express();
+
+app.use(passport.initialize());
 
 // Middleware for cors
 app.use(
