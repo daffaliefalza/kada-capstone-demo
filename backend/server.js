@@ -5,16 +5,19 @@ const path = require("path");
 const connectDB = require("./config/db.js");
 
 const authRoutes = require("./routes/authRoutes");
+const resumeRoutes = require("./routes/resumeRoutes");
 const sessionRoutes = require("./routes/sessionRoutes");
 const questionRoutes = require("./routes/questionRoutes");
-const resumeRoutes = require("./routes/resumeRoutes");
 const { protect } = require("./middlewares/authMiddleware.js");
 const {
   generateInterviewQuestion,
   generateConceptExplanation,
 } = require("./controllers/aiController.js");
+const passport = require("passport");
 
 const app = express();
+
+app.use(passport.initialize());
 
 // Middleware for cors
 app.use(

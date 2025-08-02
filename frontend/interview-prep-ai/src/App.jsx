@@ -11,7 +11,7 @@ import Error from "./components/Error";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Auth/Login";
 import SignUp from "./pages/Auth/SignUp";
-import Home from "./pages/resume/Home";
+// import Home from "./pages/resume/Home";
 
 const App = () => {
   return (
@@ -33,7 +33,7 @@ const App = () => {
               <Route path="/features" element={<Features />} />
               <Route path="/features/qna" element={<Preview />} />
               <Route path="/features/qna/dashboard" element={<Dashboard />} />
-              <Route path="/features/resume" element={<Home />} />
+              {/* <Route path="/features/resume" element={<Home />} /> */}
               <Route
                 path="/interview-prep/:sessionId"
                 element={<InterviewPrep />}
