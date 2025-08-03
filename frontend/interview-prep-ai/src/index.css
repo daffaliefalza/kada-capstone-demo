@@ -2,7 +2,7 @@
 
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
-/* @config "../tailwind.config.js"; */
+@config "../tailwind.config.js";
 
 @theme {
   --font-display: "Urbanist", sans-serif;
