@@ -19,7 +19,7 @@ const protect = async (req, res, next) => {
 
       // 3. Find user by `_id` from the decoded payload
       //    This is the main fix for the Google login issue.
-      req.user = await User.findById(decoded._id).select("-password");
+      req.user = await User.findById(decoded.id).select("-password"); // Use 'decoded.id'
 
       // 4. Handle case where user might not be found
       if (!req.user) {
