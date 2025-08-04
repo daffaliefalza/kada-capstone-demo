@@ -4,8 +4,10 @@ const UserSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: { type: String },
     profileImageUrl: { type: String, default: null },
+    registerType: { type: String, enum: ["normal", "google"], default: "normal"},
+    socialId: String,
   },
   { timestamps: true }
 );

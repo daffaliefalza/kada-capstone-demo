@@ -41,12 +41,21 @@ exports.createSession = async (req, res) => {
 //@desc     Get all session for logged-in user
 //@route    GET /api/sessions/my-sessions
 //@access   Private
-exports.getMySessions = async (req, res) => {  
-    try{  
+exports.getMySessions = async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 6;
+    try {  
         const sessions = await Session.find({ user: req.user._id })
           .sort({ createdAt: -1 })
-          .populate("questions");
-        res.status(200).json(sessions);
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .populate("questions")
+
+        const total = await Session.countDocuments({user: req.user._id});
+        const totalPages = Math.ceil(total / limit)
+
+        // res.status(200).json(sessions);
+        res.status(200).json({sessions, total, totalPages, page});
     } catch (error) {
         res.status(500).json({ success: false, message: "Server Error" })
     }
@@ -68,7 +77,7 @@ exports.getSessionById = async (req, res) => {
            .status(404)
            .json({ success: false, message: "Session not found" });
        }
-       res.status(200).json(session);
+       res.status(200).json({success: true, session});
     } catch (error) {
         res.status(500).json({ success: false, message: "Server Error" })
     }

@@ -1,5 +1,7 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { UserContext } from '../../context/userContext'
+import ProfileImage from '../ProfileImage'
 
 const ProfileInfoCard = () => {
     const { user, clearUser } = useContext(UserContext)
@@ -14,19 +16,30 @@ const ProfileInfoCard = () => {
     return (
         user && (
             <div className="flex items-center">
-                <img 
-                    src={user.profileImageUrl}
-                    alt=""
-                    className="w-11 h-11 bg-gray-300 rounded-full mr-3"
-                />
+                {/* Show regular img tag for standard login */}
+                {user.registerType !== 'google' && user.profileImageUrl && (
+                    <img
+                        src={user.profileImageUrl}
+                        alt="User profile"
+                        className="w-11 h-11 bg-gray-300 rounded-full mr-3 object-cover"
+                    />
+                )}
+                
+                {/* Show ProfileImage component for Google login */}
+                {user.registerType === 'google' && (
+                    <ProfileImage
+                        user={user}
+                        size={44}
+                        className="mr-3"
+                    />
+                )}
+                
                 <div>
-                    <div
-                        className="text-[15px] text-block font-bold leading-3"
-                    >
+                    <div className="text-[15px] text-block font-bold leading-3">
                         {user.name || ""}
                     </div>
                     <button
-                        className="text-amber-600 text-sm font-semibold cursor-pointer hover:underline"
+                        className="text-purple-600 text-sm font-semibold cursor-pointer hover:underline"
                         onClick={handleLogout}
                     >
                         Logout
