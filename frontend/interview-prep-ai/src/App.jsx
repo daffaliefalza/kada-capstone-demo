@@ -13,6 +13,7 @@ import Login from "./pages/Auth/Login";
 import SignUp from "./pages/Auth/SignUp";
 import Home from "./pages/resume/Home";
 import MockInterview from "./pages/mockInterview/Home";
+import LiveCode from "./pages/LiveCode";
 
 const App = () => {
   return (
@@ -39,6 +40,7 @@ const App = () => {
                 path="/features/mock-interview"
                 element={<MockInterview />}
               />
+              <Route path="/features/live-code" element={<LiveCode />} />
               <Route
                 path="/interview-prep/:sessionId"
                 element={<InterviewPrep />}
