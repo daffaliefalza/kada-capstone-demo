@@ -14,6 +14,8 @@ import SignUp from "./pages/Auth/SignUp";
 import Home from "./pages/resume/Home";
 import MockInterview from "./pages/mockInterview/Home";
 import LiveCode from "./pages/LiveCode";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
+import ResetPassword from "./pages/Auth/ResetPassword";
 
 const App = () => {
   return (
@@ -26,6 +28,8 @@ const App = () => {
 
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
 
             {/* Route for not found */}
 
