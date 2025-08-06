@@ -13,6 +13,7 @@ import QuestionCard from "../../components/Cards/QuestionCard";
 import AIResponsePreview from "../../components/AIResponsePreview";
 import Drawer from "../../components/Drawer";
 import SkeletonLoader from "../../components/Loader/SkeletonLoader";
+import QuizModal from "../../components/quizModal";
 
 const InterviewPrep = () => {
   const { sessionId } = useParams();
@@ -25,6 +26,37 @@ const InterviewPrep = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isUpdateLoader, setIsUpdateLoader] = useState(false);
+
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [quizData, setQuizData] = useState(null);
+  const [isQuizLoading, setIsQuizLoading] = useState(false);
+  const [quizError, setQuizError] = useState("");
+
+  // NEW: Function to start the quiz
+  const handleStartQuiz = async () => {
+    setIsQuizModalOpen(true);
+    setIsQuizLoading(true);
+    setQuizData(null);
+    setQuizError("");
+
+    try {
+      const response = await axiosInstance.post(API_PATHS.AI.GENERATE_QUIZ, {
+        role: sessionData?.role,
+        experience: sessionData?.experience,
+      });
+
+      if (response.data && Array.isArray(response.data)) {
+        setQuizData(response.data);
+      } else {
+        throw new Error("Invalid quiz data format from server.");
+      }
+    } catch (error) {
+      console.error("Failed to generate quiz:", error);
+      setQuizError("Could not generate a quiz. Please try again later.");
+    } finally {
+      setIsQuizLoading(false);
+    }
+  };
 
   // Fetch session data by session id
   const fetchSessionDetailsById = async () => {
@@ -148,6 +180,8 @@ const InterviewPrep = () => {
             ? moment(sessionData.updatedAt).format("Do MMM YYYY")
             : ""
         }
+        onStartQuiz={handleStartQuiz}
+        isQuizLoading={isQuizLoading}
       />
 
       <div className="container mx-auto pt-4 pb-4 px-4 md:px-0">
@@ -227,6 +261,13 @@ const InterviewPrep = () => {
           )}
         </Drawer>
       </div>
+      <QuizModal
+        isOpen={isQuizModalOpen}
+        onClose={() => setIsQuizModalOpen(false)}
+        quizData={quizData}
+        isLoading={isQuizLoading}
+        error={quizError}
+      />
     </DashboardLayout>
   );
 };

@@ -11,6 +11,7 @@ const questionRoutes = require("./routes/questionRoutes");
 
 const codeRoutes = require("./routes/codeRoutes");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
+const quizRoutes = require("./routes/quizRoutes")
 
 const { protect } = require("./middlewares/authMiddleware.js");
 const {
@@ -41,6 +42,8 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/questions", questionRoutes);
+
+app.use("/api", quizRoutes)
 
 app.use("/api/ai/generate-questions", protect, generateInterviewQuestion);
 app.use("/api/ai/generate-explanations", protect, generateConceptExplanation);
