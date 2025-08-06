@@ -14,7 +14,7 @@ const sendEmail = async (options) => {
 
   // 2. Define the email options
   const mailOptions = {
-    from: '"Hired Or Fired" <noreply@hiredorfired.com>',
+    from: '"Hired Ready" <noreply@hiredready.com>',
     to: options.email,
     subject: options.subject,
     html: options.html,
