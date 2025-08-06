@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiCpu, FiFileText, FiMic } from "react-icons/fi";
+import { FiAward, FiCode, FiCpu, FiFileText, FiMic } from "react-icons/fi";
 import { UserContext } from "../context/userContext";
 import ProfileInfoCard from "../components/Cards/ProfileInfoCard";
 import { motion } from "framer-motion";
@@ -30,6 +30,21 @@ const Features = () => {
       icon: FiMic,
       path: "/features/mock-interview",
       bgColor: "bg-gradient-to-br from-pink-500 to-pink-600",
+    },
+    {
+      name: "Practical Live Code",
+      description:
+        "Practice solving real-time coding questions with instant feedback.",
+      icon: FiCode,
+      path: "/features/live-code",
+      bgColor: "bg-gradient-to-br from-pink-500 to-pink-600",
+    },
+    {
+      name: "Leaderboard",
+      description: "See who's at the top of the  rankings.",
+      icon: FiAward,
+      path: "/features/leaderboard",
+      bgColor: "bg-gradient-to-br from-yellow-400 to-orange-500",
     },
   ];
 
