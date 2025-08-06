@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/Layouts/DashboardLayout";
+import Footer from "../../components/Layouts/Footer";
 
 // This is the new dashboard for the AI-Generated Q&A feature.
 const Preview = () => {
@@ -143,14 +144,7 @@ const Preview = () => {
           </div>
         </div>
         {/* Footer */}
-        <footer className="bg-slate-50">
-          <div className="mx-auto max-w-7xl overflow-hidden px-6 py-12 lg:px-8">
-            <p className="text-center text-xs leading-5 text-gray-500">
-              &copy; {new Date().getFullYear()} Deadline Warrior. All rights
-              reserved.
-            </p>
-          </div>
-        </footer>
+        <Footer/>
       </div>
     </DashboardLayout>
   );

@@ -12,6 +12,7 @@ import ProfileInfoCard from "../../components/Cards/ProfileInfoCard";
 import { UserContext } from "../../context/userContext";
 import Navbar from "../../components/Layouts/Navbar";
 import Footer from "../../components/Layouts/Footer";
+import { FiArrowLeft } from "react-icons/fi";
 
 // Loading Spinner Component
 const LoadingSpinner = () => (
@@ -97,9 +98,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 text-gray-800">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200/60">
-        <Navbar/>
-      </header>
+      <Navbar/>
 
       {/* Main Content */}
       <main className="py-24 px-4 sm:px-6">

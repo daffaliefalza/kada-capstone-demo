@@ -10,7 +10,7 @@ const Navbar = () => {
       <nav className="flex items-center justify-between p-4 lg:px-8 max-w-7xl mx-auto">
         {/* Logo */}
         <div className="flex lg:flex-1">
-          <a href="/dashboard" className="-m-1.5 p-1.5">
+          <a href="/features" className="-m-1.5 p-1.5">
             <span className="text-xl font-bold tracking-tight text-gray-900">
               Hired Ready
             </span>
