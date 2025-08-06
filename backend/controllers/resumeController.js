@@ -6,7 +6,7 @@ const pdf = require("pdf-parse");
 const mammoth = require("mammoth");
 
 // Initialize the Google Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_RESUME_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
 // Helper function to extract text from different file types
