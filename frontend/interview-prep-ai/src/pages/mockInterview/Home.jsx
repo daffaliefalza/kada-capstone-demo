@@ -13,6 +13,7 @@ import {
   Star,
   TrendingUp,
 } from "lucide-react";
+import Navbar from "../../components/Layouts/Navbar";
 
 // The pcmToWav and base64ToArrayBuffer helper functions remain unchanged.
 const pcmToWav = (pcmData, sampleRate) => {
@@ -461,7 +462,9 @@ const MockInterview = () => {
 
   // --- RENDER LOGIC ---
   return (
+
     <div className="min-h-screen bg-gray-50">
+      <Navbar/>
       <main className="flex-1 flex flex-col items-center">
         {interviewState === "role-selection" ? (
           <div className="min-h-screen flex flex-col md:flex-row bg-[#0f0f0f] text-white font-sans w-full">
