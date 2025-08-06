@@ -13,7 +13,10 @@ import Login from "./pages/Auth/Login";
 import SignUp from "./pages/Auth/SignUp";
 import Home from "./pages/resume/Home";
 import MockInterview from "./pages/mockInterview/Home";
-
+import QuestionListPage from "./pages/liveCode/QuestionListPage"; // <-- IMPORT NEW COMPONENT
+import LiveCodeLobby from "./pages/liveCode/CodeLobby"; // <-- Use a more descriptive name
+import CodingInterface from "./pages/liveCode/CodingInterface"; // <--
+import LeaderboardPage from "./pages/leaderboardPage";
 const App = () => {
   return (
     <UserProvider>
@@ -22,7 +25,6 @@ const App = () => {
           <Routes>
             {/* Default Route */}
             <Route path="/" element={<LandingPage />} />
-
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
 
@@ -39,6 +41,22 @@ const App = () => {
                 path="/features/mock-interview"
                 element={<MockInterview />}
               />
+              <Route path="/features/live-code" element={<LiveCodeLobby />} />{" "}
+              {/* <-- Lobby Page */}
+              <Route
+                path="/features/live-code/:difficulty"
+                element={<QuestionListPage />}
+              />
+              <Route
+                path="/features/live-code/solve/:questionId"
+                element={<CodingInterface />}
+              />
+              <Route
+                path="/features/leaderboard"
+                element={<LeaderboardPage />}
+              />{" "}
+              {/* <-- ADD THIS ROUTE */}
+              {/* <-- Coding Page */}
               <Route
                 path="/interview-prep/:sessionId"
                 element={<InterviewPrep />}
