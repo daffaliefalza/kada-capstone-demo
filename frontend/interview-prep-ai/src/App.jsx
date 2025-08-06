@@ -26,17 +26,14 @@ const App = () => {
       <div>
         <Router>
           <Routes>
-            {/* Default Route */}
+            {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-            {/* Route for not found */}
-
-            <Route path="*" element={<Error />} />
-            {/* Protected Routes: All routes inside will require authentication */}
+            {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/features" element={<Features />} />
               <Route path="/features/qna" element={<Preview />} />
@@ -46,8 +43,7 @@ const App = () => {
                 path="/features/mock-interview"
                 element={<MockInterview />}
               />
-              <Route path="/features/live-code" element={<LiveCodeLobby />} />{" "}
-              {/* <-- Lobby Page */}
+              <Route path="/features/live-code" element={<LiveCodeLobby />} />
               <Route
                 path="/features/live-code/:difficulty"
                 element={<QuestionListPage />}
@@ -59,11 +55,18 @@ const App = () => {
               <Route
                 path="/features/leaderboard"
                 element={<LeaderboardPage />}
-              />{" "}
-              path="/interview-prep/:sessionId" element={<InterviewPrep />}
+              />
+              <Route
+                path="/interview-prep/:sessionId"
+                element={<InterviewPrep />}
+              />
             </Route>
+
+            {/* Catch-all for 404 */}
+            <Route path="*" element={<Error />} />
           </Routes>
         </Router>
+
         <Toaster
           toastOptions={{
             className: "",
