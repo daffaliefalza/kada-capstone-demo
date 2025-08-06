@@ -8,6 +8,8 @@ const UserSchema = new mongoose.Schema(
     profileImageUrl: { type: String, default: null },
     registerType: { type: String, enum: ["normal", "google"], default: "normal"},
     socialId: String,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
   },
   { timestamps: true }
 );

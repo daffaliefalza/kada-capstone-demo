@@ -13,10 +13,13 @@ import Login from "./pages/Auth/Login";
 import SignUp from "./pages/Auth/SignUp";
 import Home from "./pages/resume/Home";
 import MockInterview from "./pages/mockInterview/Home";
-import QuestionListPage from "./pages/liveCode/QuestionListPage"; // <-- IMPORT NEW COMPONENT
-import LiveCodeLobby from "./pages/liveCode/CodeLobby"; // <-- Use a more descriptive name
-import CodingInterface from "./pages/liveCode/CodingInterface"; // <--
+import QuestionListPage from "./pages/liveCode/QuestionListPage";
+import LiveCodeLobby from "./pages/liveCode/CodeLobby";
+import CodingInterface from "./pages/liveCode/CodingInterface";
 import LeaderboardPage from "./pages/leaderboardPage";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
+import ResetPassword from "./pages/Auth/ResetPassword";
+
 const App = () => {
   return (
     <UserProvider>
@@ -27,6 +30,8 @@ const App = () => {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
 
             {/* Route for not found */}
 
@@ -55,13 +60,7 @@ const App = () => {
                 path="/features/leaderboard"
                 element={<LeaderboardPage />}
               />{" "}
-              {/* <-- ADD THIS ROUTE */}
-              {/* <-- Coding Page */}
-              <Route
-                path="/interview-prep/:sessionId"
-                element={<InterviewPrep />}
-              />
-              {/* Add any other protected routes here */}
+              path="/interview-prep/:sessionId" element={<InterviewPrep />}
             </Route>
           </Routes>
         </Router>

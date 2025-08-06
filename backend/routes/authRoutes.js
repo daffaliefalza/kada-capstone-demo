@@ -3,6 +3,8 @@ const {
   registerUser,
   loginUser,
   getUserProfile,
+  forgotPassword,
+  resetPassword,
 } = require("../controllers/authController");
 const { protect } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/uploadMiddleware");
@@ -15,6 +17,8 @@ const router = express.Router();
 router.post("/register", registerUser); // Register User
 router.post("/login", loginUser); // Login User
 router.get("/profile", protect, getUserProfile); // Get User Profile
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 router.post("/upload-image", upload.single("image"), (req, res) => {
   if (!req.file) {

@@ -8,8 +8,10 @@ import {
   AlertTriangle,
   Code,
   Server,
+  RefreshCw, // Import a new icon for "Start Over"
 } from "lucide-react";
 
+// The pcmToWav and base64ToArrayBuffer helper functions remain unchanged.
 const pcmToWav = (pcmData, sampleRate) => {
   const numSamples = pcmData.length;
   const numChannels = 1;
@@ -47,46 +49,57 @@ const base64ToArrayBuffer = (base64) => {
   return bytes.buffer;
 };
 
-// --- AI Training Prompts (Unchanged) ---
-const getSystemPrompt = (role, history) => {
-  if (history.length === 0) {
-    const basePrompt = `
-            You are an expert technical interviewer at a top tech company, conducting an interview for a senior ${role} role. 
-            Your tone must be professional, clear, and friendly. The user is the job candidate.
-            
-            **CRITICAL INSTRUCTIONS:**
-            1.  **Ask only ONE question at a time.** Do not list multiple questions.
-            2.  Wait for the candidate's response before asking the next question.
-            3.  Keep your questions concise and focused on a single concept.
-            4.  Your first question, and only your first question, must be: "To start, could you tell me about your experience as a ${role}?"
-            5.  For all subsequent questions, you will act as a follow-up interviewer.
-        `;
-    const frontendTopics = `
-            **Core Interview Focus Areas (For the entire interview, not one turn):**
-            - JavaScript Fundamentals (ES6+, async, closures, 'this', event loop).
-            - Advanced React Concepts (Hooks, state management, performance).
-            - HTML/CSS and Web Standards (Accessibility, responsive design, layouts).
-            - Web Performance and Tooling (Core Web Vitals, Vite/Webpack).
-            - Behavioral questions about teamwork and problem-solving.
-        `;
-    const backendTopics = `
-            **Core Interview Focus Areas (For the entire interview, not one turn):**
-            - Node.js Internals (Event-driven architecture, streams, performance).
-            - API Design and Security (REST vs. GraphQL, authentication like JWT).
-            - Databases (SQL vs. NoSQL, indexing, transactions).
-            - System Design and Architecture (Microservices, caching, scalability).
-            - DevOps and Cloud Concepts (Docker, CI/CD).
-            - Behavioral questions about system design choices and production issues.
-        `;
-    return `${basePrompt} ${
-      role === "Frontend Developer" ? frontendTopics : backendTopics
-    }`;
+// --- AI Training Prompts (Updated for Multi-Stage Conversation) ---
+const getSystemPrompt = (role, history, experienceLevel) => {
+  const aiTurnCount = history.filter((h) => h.role === "model").length;
+
+  // AI Turn 0: User said "Hello". AI must introduce itself and ask for the user's intro.
+  if (aiTurnCount === 0) {
+    return `You are a friendly and professional AI interviewer for a ${role} role. The candidate has just started the interview.
+            **Your Task:** Greet the candidate warmly, and then ask them for a brief introduction about themselves and their background.
+            **Example:** "Hello there! Thanks for coming in today. To get started, could you please tell me a little bit about yourself?"
+            Keep it to a single, concise question.`;
   }
-  return `
-        You are a technical interviewer. The user (candidate) just gave the previous response. 
-        Based on the conversation history and their last answer, ask the **next single, logical, and concise follow-up question.**
-        Do not greet them or add any conversational filler. Just ask the next question.
+
+  // AI Turn 1: User has introduced themselves. AI must ask for experience level.
+  if (aiTurnCount === 1) {
+    return `The candidate has just given their introduction.
+            **Your Task:** Acknowledge their introduction with a brief, positive comment (e.g., "Thanks for sharing that."). Then, ask for their specific number of years of professional experience in the ${role} role.
+            **Example:** "Thanks for sharing that. And how many years of professional experience do you have as a ${role}?"
+            Keep it to a single, concise question.`;
+  }
+
+  // AI Turn 2: User has given experience level. AI must start the main interview.
+  if (aiTurnCount === 2) {
+    return `
+      You are an expert technical interviewer for a ${role} role, and the main part of the interview is now starting.
+      The candidate has stated they have ${experienceLevel} years of experience. 
+      Your tone must be professional, clear, and friendly.
+
+      **CRITICAL INSTRUCTIONS:**
+      1.  **Ask only ONE question at a time.**
+      2.  **Start the interview gently.** Your first "real" question must be a high-level behavioral or project-based one. Example: "Great, thank you. Let's dive in. Could you walk me through a project you're particularly proud of?"
+      3.  **Tailor question difficulty to experience:**
+          - **0-2 years (Junior):** Focus on fundamental concepts.
+          - **3-5 years (Mid-level):** Ask about practical applications, trade-offs.
+          - **5+ years (Senior):** Dive into system design, architecture, scalability.
     `;
+  }
+
+  // Subsequent turns: Standard follow-up questions with ending logic.
+  const questionsAsked = aiTurnCount - 2;
+  return `
+      You are a technical interviewer in the middle of an interview. You have already asked ${questionsAsked} technical/behavioral questions.
+      The user (candidate) just gave the previous response. Ask the **next single, logical, and concise follow-up question.**
+      Remember the candidate has ${experienceLevel} years of experience and adjust your question's difficulty accordingly.
+      
+      **CRITICAL ENDING INSTRUCTION:**
+      - After you have asked a sufficient number of questions (around 3-5 more questions from this point), you MUST conclude the interview.
+      - To do this, your response MUST start with the exact tag: **[END_INTERVIEW]**
+      - Your closing message should be polite, for example: "[END_INTERVIEW] Thank you for your time. That's all the questions I have. The recruiting team will be in touch with the next steps."
+
+      Do not greet them. Just ask the next question or end the interview.
+      `;
 };
 
 // Main App Component
@@ -94,6 +107,7 @@ const MockInterview = () => {
   // --- STATE MANAGEMENT ---
   const [interviewState, setInterviewState] = useState("role-selection");
   const [interviewRole, setInterviewRole] = useState(null);
+  const [experienceLevel, setExperienceLevel] = useState(null);
   const [isUserMuted, setIsUserMuted] = useState(false);
   const [isAIMuted, setIsAIMuted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(
@@ -111,7 +125,7 @@ const MockInterview = () => {
   // --- CONSTANTS ---
   const GEMINI_API_KEY = ""; // IMPORTANT: Add your key here
 
-  // --- SPEECH RECOGNITION (USER INPUT) ---
+  // --- SPEECH RECOGNITION (Unchanged) ---
   useEffect(() => {
     if (!("webkitSpeechRecognition" in window)) {
       setError(
@@ -120,76 +134,80 @@ const MockInterview = () => {
       return;
     }
     const recognition = new window.webkitSpeechRecognition();
-
-    // ** UPDATED for patience: a key change to allow pauses **
-    recognition.continuous = true; // Keeps listening through pauses.
-    recognition.interimResults = true; // Shows live transcript.
+    recognition.continuous = true;
+    recognition.interimResults = true;
     recognition.lang = "en-US";
-
     recognition.onstart = () => {
       setInterviewState("listening");
-      setUserResponse(""); // Clear previous response
+      setUserResponse("");
       setError(null);
     };
-
     recognition.onresult = (event) => {
-      // Combine all transcript parts into one string.
       let transcript = "";
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         transcript += event.results[i][0].transcript;
       }
       setUserResponse(transcript);
     };
-
-    // This now only fires when recognition.stop() is called by the user.
     recognition.onend = () => {
       setInterviewState("thinking");
     };
-
     recognition.onerror = (event) => {
       console.error("Speech recognition error:", event.error);
       setError(
-        `Speech recognition error: ${event.error}. Please check your microphone permissions.`
+        `Speech recognition error: ${event.error}. Please check microphone permissions.`
       );
       setInterviewState("welcome");
     };
     recognitionRef.current = recognition;
   }, []);
 
-  // --- AI RESPONSE LOGIC ---
+  // --- AI RESPONSE LOGIC (Updated for Multi-Stage Conversation) ---
   useEffect(() => {
-    // This logic is now more robust. It only fires when the user is done and has said something.
     if (interviewState === "thinking" && userResponse.trim()) {
       const updatedHistory = [
         ...chatHistory,
         { role: "user", parts: [{ text: userResponse }] },
       ];
       setChatHistory(updatedHistory);
-      getAINextQuestion(updatedHistory);
+
+      const aiTurnCount = updatedHistory.filter(
+        (h) => h.role === "model"
+      ).length;
+
+      // This is the turn where we capture the experience level from the user's response.
+      if (aiTurnCount === 2) {
+        const expMatch = userResponse.match(/\d+/);
+        const exp = expMatch ? parseInt(expMatch[0], 10) : 1;
+        setExperienceLevel(exp);
+        getAINextQuestion(updatedHistory, exp); // Pass experience directly
+      } else {
+        // For all other turns, pass the current experience level (which may be null initially).
+        getAINextQuestion(updatedHistory, experienceLevel);
+      }
     } else if (interviewState === "thinking" && !userResponse.trim()) {
-      // If user stops without saying anything, go back to welcome state.
       setInterviewState("welcome");
     }
   }, [interviewState, userResponse]);
 
-  // --- HELPER FUNCTIONS ---
+  // --- HELPER FUNCTIONS (Updated) ---
   const handleRoleSelect = (role) => {
     setInterviewRole(role);
+    setCurrentQuestion(
+      `You've selected the ${role} path. When you're ready, click the mic and say "Hello" to begin.`
+    );
     setInterviewState("welcome");
-    const welcomeMessage = `You've selected the ${role} path. When you're ready, click the microphone to begin the interview.`;
-    setCurrentQuestion(welcomeMessage);
   };
 
-  // This function now starts listening OR stops listening, giving user full control.
   const toggleListening = () => {
     if (interviewState === "listening") {
-      recognitionRef.current?.stop(); // User is done talking.
+      recognitionRef.current?.stop();
     } else {
-      recognitionRef.current?.start(); // User wants to start talking.
+      recognitionRef.current?.start();
     }
   };
 
-  const generateText = async (history) => {
+  const generateText = async (history, exp) => {
     setIsLoading(true);
     setError(null);
     if (!GEMINI_API_KEY) {
@@ -201,7 +219,7 @@ const MockInterview = () => {
     }
     const model = "gemini-1.5-flash";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
-    const systemInstruction = getSystemPrompt(interviewRole, history);
+    const systemInstruction = getSystemPrompt(interviewRole, history, exp);
     const payload = {
       contents: [
         { role: "user", parts: [{ text: systemInstruction }] },
@@ -217,7 +235,6 @@ const MockInterview = () => {
       });
       if (!response.ok) {
         const errorBody = await response.json();
-        console.error("API Error Body:", errorBody);
         throw new Error(
           `API call failed: ${response.status}. ${
             errorBody?.error?.message || "Unknown error"
@@ -247,9 +264,7 @@ const MockInterview = () => {
       contents: [
         {
           parts: [
-            {
-              text: `Say in a clear, professional, and friendly interviewer voice: ${textToSpeak}`,
-            },
+            { text: `Say in a clear, professional voice: ${textToSpeak}` },
           ],
         },
       ],
@@ -264,10 +279,9 @@ const MockInterview = () => {
       });
       if (!response.ok) {
         const errorBody = await response.json();
-        console.error("TTS API Error Body:", errorBody);
         if (response.status === 429) {
           throw new Error(
-            "You've exceeded the daily free limit for AI voice generation. Please mute the AI to continue with a text-only interview or try again tomorrow."
+            "You've exceeded the daily free limit for AI voice generation. Mute the AI to continue."
           );
         }
         throw new Error(
@@ -292,7 +306,6 @@ const MockInterview = () => {
         if (audioRef.current) {
           audioRef.current.src = audioUrl;
           await audioRef.current.play();
-          audioRef.current.onended = () => setInterviewState("welcome");
         }
       } else {
         throw new Error("Invalid audio data received from API.");
@@ -306,22 +319,42 @@ const MockInterview = () => {
     }
   };
 
-  const getAINextQuestion = async (history) => {
-    const aiResponseText = await generateText(history);
+  const getAINextQuestion = async (history, exp) => {
+    const aiResponseText = await generateText(history, exp);
     if (!aiResponseText || !aiResponseText.trim()) {
       setInterviewState("welcome");
       return;
     }
-    setChatHistory((prev) => [
-      ...prev,
-      { role: "model", parts: [{ text: aiResponseText }] },
-    ]);
-    setCurrentQuestion(aiResponseText);
-    if (isAIMuted) {
-      setInterviewState("welcome");
+
+    if (aiResponseText.startsWith("[END_INTERVIEW]")) {
+      const closingMessage = aiResponseText
+        .replace("[END_INTERVIEW]", "")
+        .trim();
+      setChatHistory((prev) => [
+        ...prev,
+        { role: "model", parts: [{ text: closingMessage }] },
+      ]);
+      setCurrentQuestion(closingMessage);
+      if (isAIMuted) {
+        setInterviewState("finished");
+      } else {
+        setInterviewState("speaking");
+        audioRef.current.onended = () => setInterviewState("finished");
+        await generateAudio(closingMessage);
+      }
     } else {
-      setInterviewState("speaking");
-      await generateAudio(aiResponseText);
+      setChatHistory((prev) => [
+        ...prev,
+        { role: "model", parts: [{ text: aiResponseText }] },
+      ]);
+      setCurrentQuestion(aiResponseText);
+      if (isAIMuted) {
+        setInterviewState("welcome");
+      } else {
+        setInterviewState("speaking");
+        audioRef.current.onended = () => setInterviewState("welcome");
+        await generateAudio(aiResponseText);
+      }
     }
   };
 
@@ -332,6 +365,7 @@ const MockInterview = () => {
       audioRef.current.src = "";
     }
     setInterviewRole(null);
+    setExperienceLevel(null);
     setChatHistory([]);
     setUserResponse("");
     setError(null);
@@ -368,10 +402,8 @@ const MockInterview = () => {
   return (
     <div className="bg-[#121212] text-white font-sans min-h-screen flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-4xl">
-        {/* UI Panels */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
-          {/* AI Panel */}
-          <div className="bg-[#1E1E1E] border border-gray-700 rounded-2xl aspect-video flex flex-col items-center justify-center p-6 shadow-lg transition-all duration-300 relative">
+          <div className="bg-[#1E1E1E] border border-gray-700 rounded-2xl aspect-video flex flex-col items-center justify-center p-6 shadow-lg relative">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center mb-4 ring-2 ring-purple-500/50">
               {interviewState === "speaking" ||
               (isLoading && interviewState === "thinking") ? (
@@ -389,27 +421,26 @@ const MockInterview = () => {
                   strokeLinejoin="round"
                   className="text-white"
                 >
-                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                  <line x1="12" y1="19" x2="12" y2="22"></line>
+                  {" "}
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>{" "}
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>{" "}
+                  <line x1="12" y1="19" x2="12" y2="22"></line>{" "}
                 </svg>
               )}
             </div>
             <h2 className="text-xl font-semibold">AI Interviewer</h2>
-            <span className="text-sm text-gray-400">{interviewRole}</span>
+            <span className="text-sm text-gray-400">
+              {interviewRole}
+              {experienceLevel && ` | ${experienceLevel} yrs exp`}
+            </span>
             <button
               onClick={() => setIsAIMuted(!isAIMuted)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors group"
-              title={
-                isAIMuted
-                  ? "Unmute AI Voice (Uses Quota)"
-                  : "Mute AI Voice (Saves Quota)"
-              }
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+              title={isAIMuted ? "Unmute AI Voice" : "Mute AI Voice"}
             >
               {isAIMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
             </button>
           </div>
-          {/* User Panel */}
           <div className="bg-[#1E1E1E] border border-gray-700 rounded-2xl aspect-video flex flex-col items-center justify-center p-6 shadow-lg relative">
             <div className="w-24 h-24 rounded-full bg-gray-600 flex items-center justify-center mb-4 overflow-hidden">
               <img
@@ -419,26 +450,20 @@ const MockInterview = () => {
               />
             </div>
             <h2 className="text-xl font-semibold">You</h2>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
               <button
                 onClick={toggleListening}
                 disabled={
                   isUserMuted ||
-                  !["welcome", "listening", "finished"].includes(interviewState)
+                  !["welcome", "listening"].includes(interviewState)
                 }
                 className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 ${
                   interviewState === "listening"
-                    ? "bg-red-600"
+                    ? "bg-red-600 animate-pulse"
                     : "bg-blue-600 hover:bg-blue-500"
                 } disabled:bg-gray-500 disabled:cursor-not-allowed`}
               >
-                {isUserMuted ? (
-                  <MicOff size={32} className="text-gray-400" />
-                ) : interviewState === "listening" ? (
-                  <Mic size={32} className="text-red-500 animate-pulse" />
-                ) : (
-                  <Mic size={32} className="text-gray-200" />
-                )}
+                <Mic size={32} />
               </button>
             </div>
             <button
@@ -449,7 +474,6 @@ const MockInterview = () => {
             </button>
           </div>
         </div>
-        {/* Question/Transcript Box */}
         <div className="bg-[#1E1E1E] border border-gray-700 rounded-2xl p-6 min-h-[120px] flex items-center justify-center text-center shadow-lg relative">
           <p className="text-lg text-gray-300 italic">
             {interviewState === "listening" && userResponse
@@ -460,14 +484,12 @@ const MockInterview = () => {
             <div className="absolute bottom-2 right-2 w-4 h-4 border-2 border-dashed rounded-full animate-spin border-purple-400"></div>
           )}
         </div>
-        {/* User Response Preview */}
         {userResponse && interviewState === "thinking" && (
           <div className="mt-4 text-center text-sm text-green-400 flex items-center justify-center gap-2">
             <CornerRightDown size={16} />
             <span>I heard: "{userResponse}"</span>
           </div>
         )}
-        {/* Error Display */}
         {error && (
           <div className="mt-4 text-center text-red-400 bg-red-900/50 border border-red-700 rounded-xl p-4 flex items-center justify-center gap-3">
             <AlertTriangle size={20} />
@@ -476,13 +498,19 @@ const MockInterview = () => {
             </p>
           </div>
         )}
-        {/* Controls */}
         <div className="mt-8 flex justify-center">
           <button
             onClick={endInterview}
-            className="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 shadow-lg"
+            className="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 shadow-lg flex items-center gap-2"
           >
-            End Interview
+            {interviewState === "finished" ? (
+              <>
+                {" "}
+                <RefreshCw size={18} /> Start Over{" "}
+              </>
+            ) : (
+              "End Interview"
+            )}
           </button>
         </div>
       </div>
