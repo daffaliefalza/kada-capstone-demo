@@ -1,10 +1,10 @@
 import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiAward, FiCode, FiCpu, FiFileText, FiMic } from "react-icons/fi";
+import { FiCode, FiCpu, FiFileText, FiMic } from "react-icons/fi";
 import { UserContext } from "../context/userContext";
 import { motion } from "framer-motion";
-import Navbar from "../components/Layouts/Navbar"
-import Footer from "../components/Layouts/Footer"
+import Navbar from "../components/Layouts/Navbar";
+import Footer from "../components/Layouts/Footer";
 
 const Features = () => {
   const navigate = useNavigate();
@@ -40,13 +40,6 @@ const Features = () => {
       path: "/features/live-code",
       bgColor: "bg-gradient-to-br from-pink-500 to-pink-600",
     },
-    {
-      name: "Leaderboard",
-      description: "See who's at the top of the  rankings.",
-      icon: FiAward,
-      path: "/features/leaderboard",
-      bgColor: "bg-gradient-to-br from-yellow-400 to-orange-500",
-    },
   ];
 
   const handleFeatureSelect = (path) => {
@@ -80,7 +73,7 @@ const Features = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 text-gray-800">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200/60">
-        <Navbar/>
+        <Navbar />
       </header>
 
       {/* Main Content */}
@@ -162,7 +155,7 @@ const Features = () => {
       </main>
 
       {/* Footer */}
-      <Footer/>
+      <Footer />
     </div>
   );
 };
