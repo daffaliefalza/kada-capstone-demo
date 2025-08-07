@@ -8,11 +8,8 @@ import {
 } from "react-icons/fi";
 import FileUpload from "../../components/resume/FileUpload";
 import AnalysisDisplay from "../../components/resume/AnalysisDisplay";
-import ProfileInfoCard from "../../components/Cards/ProfileInfoCard";
 import { UserContext } from "../../context/userContext";
 import Navbar from "../../components/Layouts/Navbar";
-import Footer from "../../components/Layouts/Footer";
-import { FiArrowLeft } from "react-icons/fi";
 
 // Loading Spinner Component
 const LoadingSpinner = () => (
@@ -161,9 +158,6 @@ const Home = () => {
           )}
         </motion.div>
       </main>
-
-      {/* Footer */}
-      <Footer/>
     </div>
   );
 };
