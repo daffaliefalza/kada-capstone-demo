@@ -24,6 +24,7 @@ A smart, all-in-one platform to help users prepare for technical  & Conceptual i
 ### 4. 💻 Live Coding
 - Solve coding problems with a real-time coding editor.
 - compiles code, and gives feedback on efficiency and correctness.
+- Leaderboard to see the top ranking
 
 ---
 
