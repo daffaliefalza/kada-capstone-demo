@@ -102,11 +102,11 @@ Fullstack Engineer
 - [Portfolio](https://your-portfolio.com)
 - [Email](mailto:your@email.com)
 
-**Aldiansyah**  
+**Aldiansyah Anugrah Ramadhan**  
 Fullstack Engineer  
-- [LinkedIn](https://www.linkedin.com/in/yourprofile)
-- [Portfolio](https://your-portfolio.com)
-- [Email](mailto:your@email.com)
+- [LinkedIn](https://www.linkedin.com/in/Aldiansyah-ar)
+- [Portfolio](https://github.com/Aldiansyah-ar)
+- [Email](mailto:aldiansyahaldi621@gmail.com)
 
 **Hera Safitri**  
 Fullstack Engineer  
