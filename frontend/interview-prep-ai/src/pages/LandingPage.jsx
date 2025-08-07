@@ -196,7 +196,7 @@ const LandingPage = () => {
             <div className="flex lg:flex-1">
               <a href="#" className="-m-1.5 p-1.5">
                 <span className="text-xl font-bold tracking-tight text-slate-900">
-                  Interview Prep AI
+                  Hired Ready
                 </span>
               </a>
             </div>
