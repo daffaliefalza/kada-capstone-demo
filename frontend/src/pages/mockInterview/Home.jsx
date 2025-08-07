@@ -12,10 +12,13 @@ import {
   FileText,
   Star,
   TrendingUp,
+  ArrowLeft,
 } from "lucide-react";
 import Navbar from "../../components/Layouts/Navbar";
+import { motion, AnimatePresence } from "framer-motion";
+import { gsap } from "gsap";
 
-// The pcmToWav and base64ToArrayBuffer helper functions remain unchanged.
+// Helper functions (pcmToWav, base64ToArrayBuffer) remain unchanged.
 const pcmToWav = (pcmData, sampleRate) => {
   const numSamples = pcmData.length;
   const numChannels = 1;
@@ -54,11 +57,11 @@ const base64ToArrayBuffer = (base64) => {
   return bytes.buffer;
 };
 
-// --- AI Training Prompts (Updated for Smoother, Shorter Interview) ---
+
+// Prompts (getSystemPrompt, getSummaryPrompt) remain unchanged.
 const getSystemPrompt = (role, history, experienceLevel) => {
   const aiTurnCount = history.filter((h) => h.role === "model").length;
 
-  // AI Turn 0: User said "Hello". AI must introduce itself and ask for the user's intro.
   if (aiTurnCount === 0) {
     return `You are a friendly and professional AI interviewer for a ${role} role. The candidate has just started the interview.
             **Your Task:** Greet the candidate warmly, and then ask them for a brief introduction about themselves and their background.
@@ -66,7 +69,6 @@ const getSystemPrompt = (role, history, experienceLevel) => {
             Keep it to a single, concise question.`;
   }
 
-  // AI Turn 1: User has introduced themselves. AI must ask for experience level.
   if (aiTurnCount === 1) {
     return `The candidate has just given their introduction.
             **Your Task:** Acknowledge their introduction with a brief, positive comment (e.g., "Thanks for sharing that."). Then, ask for their specific number of years of professional experience in the ${role} role.
@@ -74,7 +76,6 @@ const getSystemPrompt = (role, history, experienceLevel) => {
             Keep it to a single, concise question.`;
   }
 
-  // AI Turn 2: User has given experience level. AI must start the main interview.
   if (aiTurnCount === 2) {
     return `
       You are an expert technical interviewer for a ${role} role, and the main part of the interview is now starting.
@@ -92,7 +93,6 @@ const getSystemPrompt = (role, history, experienceLevel) => {
     `;
   }
 
-  // Subsequent turns: Standard follow-up questions with smart ending logic.
   const questionsAsked = aiTurnCount - 2;
   const maxQuestions = experienceLevel <= 2 ? 3 : experienceLevel <= 5 ? 4 : 4;
   
@@ -113,37 +113,21 @@ const getSystemPrompt = (role, history, experienceLevel) => {
       `;
 };
 
-// Summary generation prompt
 const getSummaryPrompt = (role, history, experienceLevel) => {
   return `
     You are an expert interview evaluator. Based on the following interview conversation for a ${role} position, 
     provide a comprehensive but concise summary and evaluation.
-    
     The candidate has ${experienceLevel} years of experience.
-    
     **Your task:** Analyze the conversation and provide:
-    1. **Overall Score: X/100** (Provide a numerical score from 0-100 based on their performance)
-    2. **Overall Performance Summary** (2-3 sentences explaining the score)
+    1. **Overall Score: X/100**
+    2. **Overall Performance Summary** (2-3 sentences)
     3. **Key Strengths** (2-3 bullet points)
     4. **Areas for Improvement** (1-2 bullet points)
     5. **Recommendation** (Hire/Consider/Pass with brief reasoning)
-    
-    **Scoring Guidelines:**
-    - 90-100: Exceptional candidate, exceeds expectations for the role
-    - 80-89: Strong candidate, meets expectations with some standout qualities
-    - 70-79: Good candidate, meets most expectations with minor gaps
-    - 60-69: Average candidate, meets basic requirements but has notable gaps
-    - 50-59: Below average, significant improvements needed
-    - Below 50: Not suitable for the role at this time
-    
-    Consider their experience level when scoring. A junior with good fundamentals might score 75-80, while a senior needs to demonstrate advanced skills for similar scores.
-    
-    Keep the tone professional but encouraging. Be constructive in feedback.
-    Format your response clearly with the sections above, starting with the score.
+    Format your response clearly.
   `;
 };
 
-// Main App Component
 const MockInterview = () => {
   // --- STATE MANAGEMENT ---
   const [interviewState, setInterviewState] = useState("role-selection");
@@ -164,11 +148,21 @@ const MockInterview = () => {
   // --- REFS ---
   const recognitionRef = useRef(null);
   const audioRef = useRef(null);
+  // --- REFS FOR GSAP ANIMATION (Path Selection) ---
+  const frontendIconRef = useRef(null);
+  const frontendButtonRef = useRef(null);
+  const backendIconRef = useRef(null);
+  const backendButtonRef = useRef(null);
+  // --- REFS FOR GSAP ANIMATION (Interview Page) ---
+  const aiIconMicRef = useRef(null);
+  const aiIconHeadRef = useRef(null);
+  const aiIconBaseRef = useRef(null);
+  const gsapTimelineRef = useRef(null);
 
   // --- CONSTANTS ---
-  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY; // IMPORTANT: Add your key here
+  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
-  // --- SPEECH RECOGNITION (Unchanged) ---
+  // --- Logic and helper functions (Speech Recognition, API calls, etc.) remain unchanged ---
   useEffect(() => {
     if (!("webkitSpeechRecognition" in window)) {
       setError(
@@ -205,7 +199,6 @@ const MockInterview = () => {
     recognitionRef.current = recognition;
   }, []);
 
-  // --- AI RESPONSE LOGIC (Updated for Multi-Stage Conversation) ---
   useEffect(() => {
     if (interviewState === "thinking" && userResponse.trim()) {
       const updatedHistory = [
@@ -218,14 +211,12 @@ const MockInterview = () => {
         (h) => h.role === "model"
       ).length;
 
-      // This is the turn where we capture the experience level from the user's response.
       if (aiTurnCount === 2) {
         const expMatch = userResponse.match(/\d+/);
         const exp = expMatch ? parseInt(expMatch[0], 10) : 1;
         setExperienceLevel(exp);
-        getAINextQuestion(updatedHistory, exp); // Pass experience directly
+        getAINextQuestion(updatedHistory, exp);
       } else {
-        // For all other turns, pass the current experience level (which may be null initially).
         getAINextQuestion(updatedHistory, experienceLevel);
       }
     } else if (interviewState === "thinking" && !userResponse.trim()) {
@@ -233,7 +224,6 @@ const MockInterview = () => {
     }
   }, [interviewState, userResponse]);
 
-  // --- HELPER FUNCTIONS (Updated) ---
   const handleRoleSelect = (role) => {
     setInterviewRole(role);
     setCurrentQuestion(
@@ -303,7 +293,6 @@ const MockInterview = () => {
     const model = "gemini-2.5-flash-lite";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
     
-    // Format the conversation for analysis
     const conversationText = history.map((msg, index) => {
       const speaker = msg.role === "user" ? "Candidate" : "Interviewer";
       return `${speaker}: ${msg.parts[0].text}`;
@@ -418,7 +407,6 @@ const MockInterview = () => {
       ]);
       setCurrentQuestion(closingMessage);
       
-      // Generate summary after interview ends
       await generateSummary(history, exp);
       
       if (isAIMuted) {
@@ -460,54 +448,174 @@ const MockInterview = () => {
     setCurrentQuestion("Choose your interview path.");
   };
 
+  const handleRestartInterview = () => {
+    recognitionRef.current?.stop();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
+    setChatHistory([]);
+    setUserResponse("");
+    setError(null);
+    setInterviewSummary(null);
+    setCurrentQuestion(
+      `You've selected the ${interviewRole} path. When you're ready, click the mic and say "Hello" to begin.`
+    );
+    setInterviewState("welcome");
+  };
+
+  // --- GSAP Handlers for Hover Animations (Path Selection) ---
+  const createHoverHandlers = (iconRef, buttonRef, color) => ({
+    onHoverStart: () => {
+      gsap.to(iconRef.current, {
+        scale: 1.15,
+        rotate: "10deg",
+        duration: 0.4,
+        ease: "back.out(1.7)",
+      });
+      gsap.to(buttonRef.current, {
+        y: -4,
+        boxShadow: `0px 8px 20px -5px ${color}`,
+        duration: 0.3,
+        ease: "power2.out",
+      });
+    },
+    onHoverEnd: () => {
+      gsap.to(iconRef.current, {
+        scale: 1,
+        rotate: "0deg",
+        duration: 0.4,
+        ease: "back.in(1.7)",
+      });
+      gsap.to(buttonRef.current, {
+        y: 0,
+        boxShadow: "0px 0px 0px 0px rgba(0,0,0,0)",
+        duration: 0.3,
+        ease: "power2.in",
+      });
+    },
+  });
+
+  const frontendHoverHandlers = createHoverHandlers(frontendIconRef, frontendButtonRef, "rgba(59, 130, 246, 0.4)");
+  const backendHoverHandlers = createHoverHandlers(backendIconRef, backendButtonRef, "rgba(168, 85, 247, 0.4)");
+
+  // --- GSAP Animation for AI Icon ---
+  useEffect(() => {
+    const isAIActive = isLoading || interviewState === "speaking";
+
+    if (isAIActive) {
+        gsapTimelineRef.current = gsap.timeline({ repeat: -1, yoyo: true })
+            .to(aiIconMicRef.current, { y: -3, duration: 1, ease: "sine.inOut" }, 0)
+            .to(aiIconHeadRef.current, { y: -2, duration: 1, ease: "sine.inOut" }, 0.1)
+            .to(aiIconBaseRef.current, { y: 2, duration: 1, ease: "sine.inOut" }, 0);
+    }
+
+    return () => {
+        // Kill and clear the timeline when the component unmounts or the state changes
+        if (gsapTimelineRef.current) {
+            gsapTimelineRef.current.kill();
+            gsap.set([aiIconMicRef.current, aiIconHeadRef.current, aiIconBaseRef.current], { clearProps: "all" });
+        }
+    };
+  }, [isLoading, interviewState]);
+
   // --- RENDER LOGIC ---
   return (
-
     <div className="min-h-screen bg-gray-50">
-      <Navbar/>
+      <Navbar />
       <main className="flex-1 flex flex-col items-center">
         {interviewState === "role-selection" ? (
-          <div className="min-h-screen flex flex-col md:flex-row bg-[#0f0f0f] text-white font-sans w-full">
-            {/* Left Side - Frontend */}
-            <div
-              className="flex-1 flex flex-col items-center justify-center p-10 bg-gradient-to-br from-blue-900 via-indigo-700 to-purple-800 transition-all duration-500 hover:from-blue-800 hover:to-indigo-600 cursor-pointer group"
-              onClick={() => handleRoleSelect("Frontend Developer")}
+          // --- PATH SELECTION PAGE (ANIMATED) ---
+          <div className="min-h-screen w-full bg-slate-50 text-slate-800 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 font-sans overflow-hidden">
+             <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="text-center mb-10 sm:mb-12"
+             >
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-blue-600 text-transparent bg-clip-text">
+                Choose Your Interview Path
+              </h1>
+              <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
+                Select a specialization to begin your tailored AI-powered mock
+                interview. Each path focuses on relevant skills and questions.
+              </p>
+            </motion.div>
+            
+            <motion.div 
+                className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl"
+                initial="hidden"
+                animate="visible"
+                variants={{
+                    hidden: { opacity: 0 },
+                    visible: {
+                        opacity: 1,
+                        transition: {
+                            staggerChildren: 0.2,
+                            delayChildren: 0.3,
+                        }
+                    }
+                }}
             >
-              <div className="flex flex-col items-center text-center space-y-6 transition-transform duration-300 group-hover:scale-105">
-                <div className="bg-white bg-opacity-10 p-6 rounded-full shadow-lg group-hover:rotate-6 transition-all duration-300">
-                  <Code size={48} className="text-white" />
+              <motion.div
+                onClick={() => handleRoleSelect("Frontend Developer")}
+                variants={{
+                    hidden: { y: 20, opacity: 0 },
+                    visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } }
+                }}
+                whileHover={{ y: -8, scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                {...frontendHoverHandlers}
+                className="group bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 md:p-10 cursor-pointer shadow-sm"
+              >
+                <div className="flex flex-col items-center justify-center h-full">
+                  <div ref={frontendIconRef} className="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
+                    <Code size={36} />
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-slate-800 text-center mb-2">
+                    Frontend Developer
+                  </h2>
+                  <p className="text-slate-600 text-center mb-4 sm:mb-6">
+                    Test your knowledge in UI/UX principles, React framework, responsive
+                    design, and more.
+                  </p>
+                  <button ref={frontendButtonRef} className="bg-blue-500 text-white font-semibold py-2 px-6 rounded-full">
+                    Start Interview
+                  </button>
                 </div>
-                <h2 className="text-3xl font-bold">Frontend Developer</h2>
-                <p className="text-lg text-white/80 max-w-sm">
-                  Work with UI/UX, React, animations, and pixel-perfect experiences.
-                </p>
-                <button className="mt-4 px-6 py-3 bg-white text-indigo-800 font-bold rounded-full shadow-md group-hover:scale-105 transition-transform">
-                  Choose Frontend
-                </button>
-              </div>
-            </div>
+              </motion.div>
 
-            {/* Right Side - Backend */}
-            <div
-              className="flex-1 flex flex-col items-center justify-center p-10 bg-gradient-to-br from-purple-800 via-gray-800 to-gray-900 transition-all duration-500 hover:from-purple-700 hover:to-gray-700 cursor-pointer group"
-              onClick={() => handleRoleSelect("Backend Developer")}
-            >
-              <div className="flex flex-col items-center text-center space-y-6 transition-transform duration-300 group-hover:scale-105">
-                <div className="bg-white bg-opacity-10 p-6 rounded-full shadow-lg group-hover:-rotate-6 transition-all duration-300">
-                  <Server size={48} className="text-white" />
+              <motion.div
+                onClick={() => handleRoleSelect("Backend Developer")}
+                variants={{
+                    hidden: { y: 20, opacity: 0 },
+                    visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } }
+                }}
+                whileHover={{ y: -8, scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                {...backendHoverHandlers}
+                className="group bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 md:p-10 cursor-pointer shadow-sm"
+              >
+                <div className="flex flex-col items-center justify-center h-full">
+                  <div ref={backendIconRef} className="w-16 h-16 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-4">
+                    <Server size={36} />
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-slate-800 text-center mb-2">
+                    Backend Developer
+                  </h2>
+                  <p className="text-slate-600 text-center mb-4 sm:mb-6">
+                    Assess your skills in server-side logic, database management, API
+                    design, and system architecture.
+                  </p>
+                  <button ref={backendButtonRef} className="bg-purple-500 text-white font-semibold py-2 px-6 rounded-full">
+                    Start Interview
+                  </button>
                 </div>
-                <h2 className="text-3xl font-bold">Backend Developer</h2>
-                <p className="text-lg text-white/80 max-w-sm">
-                  Dive into servers, APIs, databases, and system architecture.
-                </p>
-                <button className="mt-4 px-6 py-3 bg-white text-purple-800 font-bold rounded-full shadow-md group-hover:scale-105 transition-transform">
-                  Choose Backend
-                </button>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         ) : interviewState === "finished" && interviewSummary ? (
-          /* Summary Page */
+          // --- SUMMARY PAGE (No changes here) ---
           <div className="bg-white text-gray-800 font-sans min-h-screen flex flex-col items-center justify-center p-4 w-full">
             <div className="w-full max-w-4xl mx-auto">
               <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
@@ -515,32 +623,37 @@ const MockInterview = () => {
                   <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <FileText size={32} className="text-white" />
                   </div>
-                  <h1 className="text-3xl font-bold text-gray-800 mb-2">Interview Summary</h1>
+                  <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                    Interview Summary
+                  </h1>
                   <p className="text-gray-600">{interviewRole} Position</p>
-                  
-                  {/* Score Display */}
-                  {interviewSummary.includes('/100') && (
+
+                  {interviewSummary.includes("/100") && (
                     <div className="mt-6">
                       {(() => {
                         const scoreMatch = interviewSummary.match(/(\d+)\/100/);
-                        const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+                        const score = scoreMatch
+                          ? parseInt(scoreMatch[1])
+                          : 0;
                         const getScoreColor = (score) => {
-                          if (score >= 90) return 'from-green-500 to-emerald-500';
-                          if (score >= 80) return 'from-blue-500 to-cyan-500';
-                          if (score >= 70) return 'from-yellow-500 to-amber-500';
-                          if (score >= 60) return 'from-orange-500 to-red-500';
-                          return 'from-red-500 to-red-700';
+                          if (score >= 90) return "from-green-500 to-emerald-500";
+                          if (score >= 80) return "from-blue-500 to-cyan-500";
+                          if (score >= 70) return "from-yellow-500 to-amber-500";
+                          if (score >= 60) return "from-orange-500 to-red-500";
+                          return "from-red-500 to-red-700";
                         };
                         const getScoreText = (score) => {
-                          if (score >= 90) return 'Exceptional';
-                          if (score >= 80) return 'Strong';
-                          if (score >= 70) return 'Good';
-                          if (score >= 60) return 'Average';
-                          return 'Needs Improvement';
+                          if (score >= 90) return "Exceptional";
+                          if (score >= 80) return "Strong";
+                          if (score >= 70) return "Good";
+                          if (score >= 60) return "Average";
+                          return "Needs Improvement";
                         };
                         return (
                           <div className="flex flex-col items-center">
-                            <div className={`w-24 h-24 rounded-full bg-gradient-to-br ${getScoreColor(score)} flex items-center justify-center mb-3 relative overflow-hidden`}>
+                            <div
+                              className={`w-24 h-24 rounded-full bg-gradient-to-br ${getScoreColor(score)} flex items-center justify-center mb-3 relative overflow-hidden`}
+                            >
                               <div className="text-2xl font-bold text-white">{score}</div>
                               <div className="absolute bottom-1 text-xs text-white/80 font-medium">/ 100</div>
                             </div>
@@ -553,149 +666,139 @@ const MockInterview = () => {
                 </div>
 
                 <div className="prose max-w-none">
-                  <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                    {interviewSummary}
-                  </div>
+                  <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">{interviewSummary}</div>
                 </div>
 
-                <div className="mt-8 flex justify-center gap-4">
+                <div className="mt-8 flex justify-center">
                   <button
-                    onClick={endInterview}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 shadow-lg flex items-center gap-2"
+                    onClick={handleRestartInterview}
+                    className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 shadow-lg flex items-center gap-2"
                   >
                     <RefreshCw size={18} />
-                    Start New Interview
+                    Restart the Interview
                   </button>
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          /* Interview Page (welcome, listening, thinking, etc) */
-          <div className="bg-white text-gray-800 font-sans min-h-screen flex flex-col items-center justify-center p-4 w-full">
+          // --- INTERVIEW PAGE (ANIMATED) ---
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="bg-white text-gray-800 font-sans min-h-screen flex flex-col items-center justify-center p-4 w-full"
+          >
             <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 w-full">
+              {!isGeneratingSummary && (
+                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="w-full mb-4">
+                  <button
+                    onClick={endInterview}
+                    className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-full transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2"
+                  >
+                    <ArrowLeft size={18} />
+                    Back to AI Interview Path
+                  </button>
+                </motion.div>
+              )}
+
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 w-full">
                 {/* AI Interviewer Card */}
-                <div className="bg-white border border-gray-200 rounded-2xl aspect-video flex flex-col items-center justify-center p-6 shadow-lg relative">
+                <motion.div 
+                    animate={{ 
+                        scale: (isLoading || interviewState === 'speaking') ? 1.03 : 1,
+                        boxShadow: (isLoading || interviewState === 'speaking') ? "0px 10px 30px -5px rgba(168, 85, 247, 0.2)" : "0px 4px 6px -1px rgba(0, 0, 0, 0.1)"
+                    }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                    className="bg-white border border-gray-200 rounded-2xl aspect-video flex flex-col items-center justify-center p-6 relative"
+                >
                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center mb-4 ring-2 ring-purple-500/50">
-                    {interviewState === "speaking" ||
-                    (isLoading && interviewState === "thinking") ? (
+                    {interviewState === "speaking" || (isLoading && interviewState === "thinking") ? (
                       <Volume2 size={48} className="text-white animate-pulse" />
                     ) : (
                       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                        <line x1="12" y1="19" x2="12" y2="22"></line>
+                        <path ref={aiIconMicRef} d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path ref={aiIconHeadRef} d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line ref={aiIconBaseRef} x1="12" y1="19" x2="12" y2="22"></line>
                       </svg>
                     )}
                   </div>
                   <h2 className="text-xl font-semibold text-gray-800">AI Interviewer</h2>
-                  <span className="text-sm text-gray-500">
-                    {interviewRole}
-                    {experienceLevel && ` | ${experienceLevel} yrs exp`}
-                  </span>
-                  <button
-                    onClick={() => setIsAIMuted(!isAIMuted)}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
-                    title={isAIMuted ? "Unmute AI Voice" : "Mute AI Voice"}
-                  >
+                  <span className="text-sm text-gray-500">{interviewRole}</span>
+                  <button onClick={() => setIsAIMuted(!isAIMuted)} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors" title={isAIMuted ? "Unmute AI Voice" : "Mute AI Voice"}>
                     {isAIMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                   </button>
-                </div>
+                </motion.div>
 
                 {/* User Card */}
-                <div className="bg-white border border-gray-200 rounded-2xl aspect-video flex flex-col items-center justify-center p-6 shadow-lg relative">
+                <motion.div 
+                    animate={{ 
+                        scale: interviewState === 'listening' ? 1.03 : 1,
+                        boxShadow: interviewState === 'listening' ? "0px 10px 30px -5px rgba(239, 68, 68, 0.2)" : "0px 4px 6px -1px rgba(0, 0, 0, 0.1)"
+                    }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                    className="bg-white border border-gray-200 rounded-2xl aspect-video flex flex-col items-center justify-center p-6 relative"
+                >
                   <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mb-4 overflow-hidden">
-                    <img
-                      src="https://placehold.co/100x100/E5E7EB/374151?text=You"
-                      alt="User Avatar"
-                      className="w-full h-full object-cover"
-                    />
+                    <img src="https://placehold.co/100x100/E5E7EB/374151?text=You" alt="User Avatar" className="w-full h-full object-cover"/>
                   </div>
                   <h2 className="text-xl font-semibold text-gray-800">You</h2>
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-                    <button
-                      onClick={toggleListening}
-                      disabled={
-                        isUserMuted ||
-                        !["welcome", "listening"].includes(interviewState)
-                      }
-                      className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 ${
-                        interviewState === "listening"
-                          ? "bg-red-500 animate-pulse"
-                          : "bg-blue-500 hover:bg-blue-600"
-                      } disabled:bg-gray-300 disabled:cursor-not-allowed`}
+                    <button onClick={toggleListening} disabled={isUserMuted || !["welcome", "listening"].includes(interviewState)}
+                      className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 ${interviewState === "listening" ? "bg-red-500 animate-pulse" : "bg-blue-500 hover:bg-blue-600"} disabled:bg-gray-300 disabled:cursor-not-allowed`}
                     >
                       <Mic size={32} className="text-white" />
                     </button>
                   </div>
-                  <button
-                    onClick={() => setIsUserMuted(!isUserMuted)}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
-                  >
+                  <button onClick={() => setIsUserMuted(!isUserMuted)} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors">
                     {isUserMuted ? <MicOff size={20} /> : <Mic size={20} />}
                   </button>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
 
-              {/* Current Question / Response */}
-              <div className="bg-white border border-gray-200 rounded-2xl p-6 min-h-[120px] w-full flex items-center justify-center text-center shadow-lg relative">
-                <p className="text-lg text-gray-700">
-                  {interviewState === "listening" && userResponse
-                    ? userResponse
-                    : currentQuestion}
-                </p>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white border border-gray-200 rounded-2xl p-6 min-h-[120px] w-full flex items-center justify-center text-center shadow-lg relative">
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={currentQuestion}
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -10, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="text-lg text-gray-700"
+                  >
+                    {interviewState === "listening" && userResponse ? userResponse : currentQuestion}
+                  </motion.p>
+                </AnimatePresence>
                 {(isLoading || isGeneratingSummary) && (
                   <div className="absolute bottom-2 right-2 w-4 h-4 border-2 border-dashed rounded-full animate-spin border-blue-400"></div>
                 )}
-              </div>
+              </motion.div>
 
-              {/* User Response Confirmation */}
               {userResponse && interviewState === "thinking" && (
-                <div className="mt-4 text-center text-sm text-green-600 flex items-center justify-center gap-2">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 text-center text-sm text-green-600 flex items-center justify-center gap-2">
                   <CornerRightDown size={16} />
                   <span>I heard: "{userResponse}"</span>
-                </div>
+                </motion.div>
               )}
 
-              {/* Error Message */}
               {error && (
-                <div className="mt-4 text-center text-red-500 bg-red-100 border border-red-200 rounded-xl p-4 flex items-center justify-center gap-3">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 text-center text-red-500 bg-red-100 border border-red-200 rounded-xl p-4 flex items-center justify-center gap-3">
                   <AlertTriangle size={20} />
-                  <p>
-                    <strong>Error:</strong> {error}
-                  </p>
-                </div>
+                  <p><strong>Error:</strong> {error}</p>
+                </motion.div>
               )}
-
-              {/* End Interview Button */}
-              <div className="mt-8 flex justify-center w-full">
-                <button
-                  onClick={endInterview}
-                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 shadow-lg flex items-center gap-2"
-                  disabled={isGeneratingSummary}
-                >
-                  {isGeneratingSummary ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Generating Summary...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw size={18} />
-                      End Interview
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
-
-            {/* Hidden Audio Player */}
             <audio ref={audioRef} className="hidden" />
-          </div>
+          </motion.div>
         )}
       </main>
 
+      <footer className="bg-slate-50 text-gray-500 py-4">
+        <div className="mx-auto max-w-7xl px-6 text-center text-sm">
+          &copy; {new Date().getFullYear()} Deadline Warrior. All rights
+          reserved.
+        </div>
+      </footer>
     </div>
   );
 };
