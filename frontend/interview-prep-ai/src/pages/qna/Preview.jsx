@@ -143,8 +143,6 @@ const Preview = () => {
             </div>
           </div>
         </div>
-        {/* Footer */}
-        <Footer/>
       </div>
     </DashboardLayout>
   );
