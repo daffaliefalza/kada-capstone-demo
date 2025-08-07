@@ -1,13 +1,16 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion"; // Import motion from Framer Motion
+import { gsap } from "gsap"; // Import gsap
 import DashboardLayout from "../../components/Layouts/DashboardLayout";
 import Footer from "../../components/Layouts/Footer";
 
-// This is the new dashboard for the AI-Generated Q&A feature.
+// This is the new dashboard for the AI-Generated Q&A feature, now with animations.
 const Preview = () => {
   const navigate = useNavigate();
+  const mainRef = useRef(null); // Create a ref for the main container to scope GSAP animations
 
-  // Static data for the role preview cards, inspired by your screenshot.
+  // Static data for the role preview cards
   const roles = [
     {
       initials: "SB",
@@ -73,42 +76,96 @@ const Preview = () => {
   ];
 
   const handleStart = () => {
-    // This would navigate to the actual Q&A creation/start page.
-    // For now, it can just log to the console.
     navigate("/features/qna/dashboard");
   };
 
+  // GSAP Animation Hook
+  useEffect(() => {
+    // Use a GSAP context for safe cleanup
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline();
+
+      // Animate the left column content
+      tl.from(".animate-heading", {
+        duration: 0.8,
+        opacity: 0,
+        y: 40,
+        ease: "power3.out",
+      })
+        .from(".animate-p", {
+          duration: 0.8,
+          opacity: 0,
+          y: 40,
+          ease: "power3.out",
+        }, "-=0.6") // Overlap previous animation
+        .from(".animate-button", {
+          duration: 0.8,
+          opacity: 0,
+          y: 40,
+          ease: "power3.out",
+        }, "-=0.6");
+
+      // Animate the right column cards with a stagger effect
+      gsap.from(".animate-card", {
+        duration: 0.6,
+        opacity: 0,
+        y: 30,
+        stagger: 0.1,
+        ease: "power3.out",
+        delay: 0.5, // Start after the left column has animated in
+      });
+    }, mainRef); // Scope the context to our main ref
+
+    // Cleanup function to revert animations
+    return () => ctx.revert();
+  }, []);
+
   return (
     <DashboardLayout>
-      <div className="min-h-screen w-full bg-white">
+      {/* Add the ref to the main container */}
+      <div ref={mainRef} className="min-h-screen w-full bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Left Column: Text Content */}
             <div className="text-left">
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-800 leading-tight">
+              {/* Added a class for GSAP to target */}
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-800 leading-tight animate-heading">
                 Master Your Role-Specific Interviews
               </h1>
-              <p className="mt-4 text-lg text-gray-600">
+              {/* Added a class for GSAP to target */}
+              <p className="mt-4 text-lg text-gray-600 animate-p">
                 Select from a wide range of roles to access tailored Q&A, or
                 start a new session to generate questions for any position
                 you're targeting.
               </p>
-              <button
+              {/* Replaced <button> with <motion.button> for interactions */}
+              <motion.button
                 onClick={handleStart}
-                className="mt-8 inline-block cursor-pointer bg-gray-800 text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:bg-gray-700 transition-colors duration-300"
+                className="mt-8 inline-block cursor-pointer bg-gray-800 text-white font-semibold px-8 py-3 rounded-lg shadow-lg animate-button"
+                whileHover={{ scale: 1.05, backgroundColor: "#4B5563" /* gray-700 */ }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
               >
                 Start a New Session
-              </button>
+              </motion.button>
             </div>
 
             {/* Right Column: Role Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {roles.map((role, index) => (
-                <div
+                // Replaced <div> with <motion.div> for interactions
+                <motion.div
                   key={index}
-                  className={`p-4 rounded-xl border transition-shadow hover:shadow-lg cursor-pointer ${
+                  // Added "animate-card" for GSAP targeting. Removed Tailwind hover classes as Framer Motion handles it.
+                  className={`p-4 rounded-xl border cursor-pointer animate-card ${
                     role.borderColor
                   } ${role.bgColor || "bg-white"}`}
+                  whileHover={{
+                    scale: 1.04,
+                    boxShadow: "0px 10px 20px rgba(0,0,0,0.1)",
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 >
                   <div className="flex items-start gap-4">
                     <div
@@ -138,13 +195,13 @@ const Preview = () => {
                   <p className="mt-3 text-xs text-gray-500">
                     {role.description}
                   </p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
         </div>
         {/* Footer */}
-        <Footer/>
+        <Footer />
       </div>
     </DashboardLayout>
   );
