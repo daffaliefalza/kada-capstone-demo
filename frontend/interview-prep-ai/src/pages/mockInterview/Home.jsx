@@ -696,12 +696,6 @@ const MockInterview = () => {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-slate-50 text-gray-500 py-4">
-        <div className="mx-auto max-w-7xl px-6 text-center text-sm">
-          &copy; {new Date().getFullYear()} Deadline Warrior. All rights reserved.
-        </div>
-      </footer>
     </div>
   );
 };

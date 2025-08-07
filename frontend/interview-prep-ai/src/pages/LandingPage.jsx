@@ -1,7 +1,7 @@
 import React, { useState, useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/userContext";
-import { FiCpu, FiFileText, FiMic } from "react-icons/fi";
+import { FiCpu, FiFileText, FiMic, FiCode } from "react-icons/fi";
 
 // GSAP Imports
 import { gsap } from "gsap";
@@ -13,7 +13,6 @@ import Login from "./Auth/Login";
 import SignUp from "./Auth/SignUp";
 import Modal from "../components/Modal";
 import ProfileInfoCard from "./../components/Cards/ProfileInfoCard";
-import HERO_IMG from "../assets/hero-img.png";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -25,12 +24,10 @@ const LandingPage = () => {
   const [openAuthModal, setOpenAuthModal] = useState(false);
   const [currentPage, setCurrentPage] = useState("login");
 
-  const container = useRef(); // Create a ref for the main container
+  const container = useRef();
 
-  // GSAP Animations using the useGSAP hook
   useGSAP(
     () => {
-      // --- HERO SECTION ON-LOAD ANIMATION ---
       const tl = gsap.timeline({ defaults: { ease: "power3.inOut" } });
       tl.from(".hero__heading", { opacity: 0, y: 30, duration: 0.8 })
         .from(".hero__paragraph", { opacity: 0, y: 20, duration: 0.6 }, "-=0.4")
@@ -41,7 +38,6 @@ const LandingPage = () => {
           "-=0.5"
         );
 
-      // --- SCROLL-TRIGGERED FEATURES ---
       gsap.from(".feature-card", {
         scrollTrigger: {
           trigger: "#features",
@@ -55,10 +51,10 @@ const LandingPage = () => {
         ease: "power3.out",
       });
 
-      // --- SCROLL-TRIGGERED GUIDELINES ---
-      gsap.from(".guideline-step", {
+      // Updated to target the new class name for the toolkit section
+      gsap.from(".toolkit-item", {
         scrollTrigger: {
-          trigger: "#guidelines",
+          trigger: "#toolkit",
           start: "top 70%",
           toggleActions: "play none none none",
         },
@@ -69,7 +65,6 @@ const LandingPage = () => {
         ease: "power2.out",
       });
 
-      // --- NEW: SCROLL-TRIGGERED FINAL CTA ---
       const ctaTimeline = gsap.timeline({
         scrollTrigger: {
           trigger: ".final-cta",
@@ -90,12 +85,10 @@ const LandingPage = () => {
           "-=0.5"
         );
 
-      // --- NEW: MOUSE-MOVE PARALLAX FOR HERO IMAGE ---
       const handleMouseMove = (e) => {
         const { clientX, clientY } = e;
         const xPercent = (clientX / window.innerWidth - 0.5) * 2;
         const yPercent = (clientY / window.innerHeight - 0.5) * 2;
-
         gsap.to(".hero__image", {
           x: xPercent * 20,
           y: yPercent * 15,
@@ -105,10 +98,8 @@ const LandingPage = () => {
           duration: 0.7,
         });
       };
-
       window.addEventListener("mousemove", handleMouseMove);
 
-      // --- NEW: SCROLL PARALLAX FOR HERO BLOB ---
       gsap.to(".hero__blob", {
         scrollTrigger: {
           trigger: ".hero-section-container",
@@ -120,12 +111,11 @@ const LandingPage = () => {
         ease: "none",
       });
 
-      // Cleanup function to remove event listener
       return () => {
         window.removeEventListener("mousemove", handleMouseMove);
       };
     },
-    { scope: container } // Scope animations to the container ref
+    { scope: container }
   );
 
   const handleGetStarted = () => {
@@ -159,28 +149,39 @@ const LandingPage = () => {
         "Practice your answers out loud with our realistic voice agent and receive instant performance analysis.",
       icon: FiMic,
     },
+    {
+      name: "Interactive Live Coding",
+      description:
+        "Sharpen your problem-solving skills in a real-time coding environment with AI-powered hints and feedback.",
+      icon: FiCode,
+    },
   ];
 
-  const guidelines = [
+  // --- REVISED: "How It Works" section is now "Prep Pillars" ---
+  const prepPillars = [
     {
-      name: "Upload Your Resume & Job Description",
+      name: "Master the Concepts",
       description:
-        "Give our AI the context it needs. Upload your resume and the details of the job you're targeting for a truly personalized experience.",
+        "Solidify your knowledge with AI-generated Q&A tailored to the specific concepts required for your target role.",
+      icon: FiCpu,
     },
     {
-      name: "Generate Tailored Questions",
+      name: "Perfect Your Application",
       description:
-        "Start a new session and let the AI generate a list of relevant technical, behavioral, and situational questions based on your inputs.",
+        "Optimize your resume with intelligent, targeted feedback, ensuring your first impression is a strong and memorable one.",
+      icon: FiFileText,
     },
     {
-      name: "Practice with Confidence",
+      name: "Prove Your Practical Skills",
       description:
-        "Use the voice agent to conduct mock interviews. Get instant feedback on your answers, tone, and delivery to continuously improve.",
+        "Tackle real-world coding challenges in our live editor and get instant, constructive hints to sharpen your abilities.",
+      icon: FiCode,
     },
     {
-      name: "Analyze and Refine",
+      name: "Excel in the Interview Room",
       description:
-        "Review your performance, identify areas for improvement, and refine your answers. Go into your real interview fully prepared and confident.",
+        "Simulate real interview pressure with our voice-based mock interviews to build confidence and refine your delivery.",
+      icon: FiMic,
     },
   ];
 
@@ -259,7 +260,7 @@ const LandingPage = () => {
                 <div className="mt-16 flow-root sm:mt-24 hero__image">
                   <div className="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4">
                     <img
-                      src="https://plus.unsplash.com/premium_photo-1682125139523-92d7def89cd1?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                      src="https://plus.unsplash.com/premium_photo-1682125139523-92d7def89cd1?q=80&w=880&auto=format&fit=crop&ixlib-rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                       alt="App screenshot"
                       width={1300}
                       height={1000}
@@ -287,8 +288,8 @@ const LandingPage = () => {
                   competence.
                 </p>
               </div>
-              <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
-                <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-3 lg:gap-y-16">
+              <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-5xl">
+                <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 md:max-w-none md:grid-cols-2 lg:gap-y-16">
                   {features.map((feature) => (
                     <div
                       key={feature.name}
@@ -313,36 +314,39 @@ const LandingPage = () => {
             </div>
           </div>
 
-          {/* Guidelines Section */}
-          <div id="guidelines" className="bg-slate-50 py-24 sm:py-32">
+          {/* --- REVISED "HOW IT WORKS" SECTION --- */}
+          <div id="toolkit" className="bg-slate-50 py-24 sm:py-32">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
               <div className="mx-auto max-w-2xl lg:text-center hero__heading">
                 <h2 className="text-base font-semibold leading-7 text-indigo-600">
-                  Your Path to Success
+                  Comprehensive Preparation
                 </h2>
                 <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                  How It Works
+                  A Tool for Every Step
                 </p>
                 <p className="mt-6 text-lg leading-8 text-gray-600">
-                  Follow these simple steps to transform your interview
-                  preparation from stressful to strategic.
+                  Our platform is more than just one tool—it's a complete
+                  toolkit to cover every angle of your interview preparation.
                 </p>
               </div>
               <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
                 <dl className="grid grid-cols-1 gap-x-8 gap-y-16 text-base leading-7 text-gray-600 sm:grid-cols-2 lg:grid-cols-4">
-                  {guidelines.map((guideline, index) => (
+                  {prepPillars.map((pillar) => (
                     <div
-                      key={guideline.name}
-                      className="flex flex-col guideline-step"
+                      key={pillar.name}
+                      className="flex flex-col toolkit-item"
                     >
                       <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-gray-900">
-                        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold">
-                          {index + 1}
-                        </span>
-                        {guideline.name}
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600">
+                          <pillar.icon
+                            className="h-6 w-6 text-white"
+                            aria-hidden="true"
+                          />
+                        </div>
+                        {pillar.name}
                       </dt>
                       <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-600">
-                        <p className="flex-auto">{guideline.description}</p>
+                        <p className="flex-auto">{pillar.description}</p>
                       </dd>
                     </div>
                   ))}
