@@ -8,7 +8,12 @@ const authRoutes = require("./routes/authRoutes");
 const resumeRoutes = require("./routes/resumeRoutes");
 const sessionRoutes = require("./routes/sessionRoutes");
 const questionRoutes = require("./routes/questionRoutes");
-const codingRoutes = require("./routes/codingRoutes");
+
+
+const codeRoutes = require("./routes/codeRoutes");
+const leaderboardRoutes = require("./routes/leaderboardRoutes");
+const quizRoutes = require("./routes/quizRoutes")
+
 const { protect } = require("./middlewares/authMiddleware.js");
 const {
   generateInterviewQuestion,
@@ -39,11 +44,17 @@ app.use("/api/auth", authRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/questions", questionRoutes);
 
+app.use("/api", quizRoutes)
+
 app.use("/api/ai/generate-questions", protect, generateInterviewQuestion);
 app.use("/api/ai/generate-explanations", protect, generateConceptExplanation);
 
 app.use("/api/resumes", resumeRoutes); // Use the routes
-app.use("/api/coding", codingRoutes);
+
+app.use("/api/code", codeRoutes); // <-- ADD THIS LINE
+app.use("/api/leaderboard", leaderboardRoutes); // <-- ADD THIS LINE
+
+
 // serve uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 

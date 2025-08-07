@@ -1,0 +1,239 @@
+// backend/controllers/codeController.js
+
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const CodeQuestion = require("../models/codeQuestion");
+
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+/**
+ * A robust function to find and parse a JSON object from a potentially messy AI response string.
+ * It ignores conversational text, markdown, and other garbage.
+ * @param {string} rawText - The raw string response from the AI.
+ * @returns {object} The parsed JSON object.
+ */ // This helper function is already correct and robust. No changes needed here.
+const cleanAndParseJson = (rawText) => {
+  const firstBraceIndex = rawText.indexOf("{");
+  const lastBraceIndex = rawText.lastIndexOf("}");
+  if (
+    firstBraceIndex === -1 ||
+    lastBraceIndex === -1 ||
+    lastBraceIndex < firstBraceIndex
+  ) {
+    console.error(
+      "Could not find a valid JSON object in the AI response. Raw text:",
+      rawText
+    );
+    throw new Error("AI response did not contain a valid JSON object.");
+  }
+  const jsonString = rawText.substring(firstBraceIndex, lastBraceIndex + 1);
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.error("Failed to parse extracted JSON string:", jsonString);
+    throw new Error("Extracted text from AI response was not valid JSON.");
+  }
+};
+
+// Replace your entire generateQuestion function with this one.
+exports.generateQuestion = async (req, res) => {
+  try {
+    const { difficulty, topic = "Data Structures and Algorithms" } = req.body;
+    const userId = req.user.id;
+
+    if (!["Easy", "Medium", "Hard"].includes(difficulty)) {
+      return res.status(400).json({ message: "Invalid difficulty level." });
+    }
+
+    const existingQuestions = await CodeQuestion.find({
+      userId,
+      difficulty,
+    }).select("title -_id");
+
+    const existingTitles = existingQuestions.map((q) => q.title);
+    const existingTitlesString =
+      existingTitles.length > 0
+        ? `Please ensure the new question title is NOT one of the following: "${existingTitles.join(
+            '", "'
+          )}".`
+        : "This is the first question of this difficulty.";
+
+    let aiPrompt;
+    if (difficulty === "Easy") {
+      aiPrompt = `
+        Generate a beginner-friendly, 'Easy' level coding challenge suitable for someone new to programming. The language is JavaScript.
+        **Characteristics of an 'Easy' problem:**
+        - It MUST focus on fundamental concepts like loops, basic string manipulation, or array iteration.
+        - It MUST NOT require complex data structures or advanced algorithms.
+        **Examples of 'Easy' problems:**
+        - "Reverse a String", "Check if a String is a Palindrome", "FizzBuzz", "Find the Maximum Number in an Array"
+        IMPORTANT: ${existingTitlesString} Please create a completely new and unique challenge that fits the 'Easy' criteria.
+        Provide your response as a JSON object with three keys: "title", "prompt", and "solutionTemplate".
+      `;
+    } else {
+      aiPrompt = `
+        Generate a ${difficulty}-level coding challenge about ${topic} for a software engineering interview. The language is JavaScript.
+        IMPORTANT: ${existingTitlesString} Please create a completely new and unique challenge.
+        Provide your response as a JSON object with three keys:
+        1. "title": A concise, creative title for the problem.
+        2. "prompt": A detailed problem description in Markdown format.
+        3. "solutionTemplate": A string containing just the initial function template, including JSDoc comments.
+        Example JSON format:
+        {
+          "title": "Largest Rectangle in Histogram",
+          "prompt": "## Largest Rectangle in Histogram...",
+          "solutionTemplate": "/**\\n * @param {number[]} heights\\n * @return {number}\\n */\\nvar largestRectangleArea = function(heights) {\\n    \\n};"
+        }
+      `;
+    }
+
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+    const result = await model.generateContent(aiPrompt);
+    const responseText = result.response.text();
+    const parsedResponse = cleanAndParseJson(responseText);
+
+    // --- START OF REVISED SANITIZATION & VALIDATION ---
+    let template = parsedResponse.solutionTemplate;
+
+    if (!template) {
+      throw new Error("AI response did not include a solution template.");
+    }
+
+    // 1. Clean the 'javascript' prefix. This is correct.
+    template = template.replace(/^javascript\s*\n?/, "");
+
+    // 2. We will now validate BEFORE we try to modify the string further.
+    //    This new validation check is more robust and looks for either the 'function' keyword OR an arrow function '=>'.
+    const isValidFunctionSyntax = /function|\=>/.test(template);
+    if (!isValidFunctionSyntax) {
+      console.error(
+        "AI failed to generate a valid function signature. Received:",
+        template
+      );
+      throw new Error("Invalid template generated by AI. Please try again.");
+    }
+
+    // 3. NOW we can safely empty the function body.
+    const openBraceIndex = template.indexOf("{");
+    const closeBraceIndex = template.lastIndexOf("}");
+    if (openBraceIndex !== -1 && closeBraceIndex > openBraceIndex) {
+      const functionHeader = template.substring(0, openBraceIndex + 1);
+      const functionFooter = template.substring(closeBraceIndex);
+      template = `${functionHeader}\n\n  // Your code here\n\n${functionFooter}`;
+    }
+    // --- END OF REVISED SANITIZATION & VALIDATION ---
+
+    const newQuestion = new CodeQuestion({
+      userId,
+      title: parsedResponse.title,
+      prompt: parsedResponse.prompt,
+      userSolution: template,
+      difficulty,
+    });
+
+    await newQuestion.save();
+    res.status(201).json(newQuestion);
+  } catch (error) {
+    console.error("Error generating code question:", error.message);
+    res.status(500).json({
+      message: "Failed to generate a valid question. Please try again.",
+    });
+  }
+};
+
+// Keep all your other controller functions as they are
+exports.getQuestionsByDifficulty = async (req, res) => {
+  try {
+    const { difficulty } = req.params;
+    const userId = req.user.id;
+    const formattedDifficulty =
+      difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+
+    const questions = await CodeQuestion.find({
+      userId,
+      difficulty: formattedDifficulty,
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json(questions);
+  } catch (error) {
+    console.error("Error fetching questions by difficulty:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.submitSolution = async (req, res) => {
+  try {
+    const { questionId } = req.params;
+    const { userCode } = req.body;
+
+    const question = await CodeQuestion.findById(questionId);
+    if (!question) {
+      return res.status(404).json({ message: "Question not found." });
+    }
+
+    question.userSolution = userCode;
+
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+    // This is the NEW "Socratic Tutor" prompt
+    const aiPrompt = `
+  You are an expert, Socratic-style coding tutor. Your primary goal is to guide the user to the correct solution without ever giving it away directly. Analyze the following JavaScript code submission.
+
+  Problem Description:
+  """
+  ${question.prompt}
+  """
+
+  User's Code Submission:
+  \`\`\`javascript
+  ${userCode}
+  \`\`\`
+
+  First, internally determine if the user's solution is correct.
+
+  Then, provide your response as a JSON object with two keys: "isCorrect" (a boolean) and "feedbackMarkdown" (a string in Markdown).
+
+  **YOUR RULES FOR "feedbackMarkdown":**
+
+  1.  **If the code is correct (\`isCorrect: true\`):** Congratulate the user. Provide a brief analysis of the time and space complexity. You can also suggest one alternative approach or optimization if a significantly better one exists.
+
+  2.  **If the code is incorrect or incomplete (\`isCorrect: false\`):**
+      - **Always start your \`feedbackMarkdown\` with the sentence: "Your solution isn't quite right yet, but you're on the right track. Here's a hint to guide you:"**
+
+      - **DO NOT, under any circumstances, provide the full, corrected code or a complete implementation.** This is the most important rule.
+      - Instead, act as a tutor. Guide the user by doing one or two of the following:
+          - Point out a specific logical error in their current code (e.g., "Your loop's condition might cause it to miss the last element. What happens when 'i' is equal to 'array.length - 1'?").
+          - Suggest a high-level algorithmic approach (e.g., "For this kind of problem, have you considered using a hash map to keep track of the values you've already seen?").
+          - Hint at a useful built-in JavaScript method (e.g., "There's a helpful array method that can find the index of an element. Have you looked into that?").
+          - Ask a Socratic question to prompt their thinking about edge cases (e.g., "What would happen if the input array was empty? How does your code handle that?").
+      - Keep the feedback encouraging and focused on leading them to the answer, not giving them the answer.
+`;
+
+    const result = await model.generateContent(aiPrompt);
+    const responseText = result.response.text();
+    const parsedResponse = cleanAndParseJson(responseText);
+
+    question.feedback = parsedResponse.feedbackMarkdown;
+
+    if (parsedResponse.isCorrect === true) {
+      question.status = "Solved";
+    }
+
+    await question.save();
+    res.status(200).json({ feedback: question.feedback });
+  } catch (error) {
+    console.error("Error submitting solution:", error);
+    res.status(500).json({ message: "Failed to get feedback from AI" });
+  }
+};
+
+exports.getQuestionById = async (req, res) => {
+  try {
+    const question = await CodeQuestion.findById(req.params.questionId);
+    if (!question) {
+      return res.status(404).json({ message: "Question not found" });
+    }
+    res.status(200).json(question);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};

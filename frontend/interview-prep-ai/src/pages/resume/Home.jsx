@@ -1,5 +1,4 @@
-// frontend/src/App.jsx
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { motion } from "framer-motion";
 import {
   FiUploadCloud,
@@ -9,8 +8,10 @@ import {
 } from "react-icons/fi";
 import FileUpload from "../../components/resume/FileUpload";
 import AnalysisDisplay from "../../components/resume/AnalysisDisplay";
+import { UserContext } from "../../context/userContext";
+import Navbar from "../../components/Layouts/Navbar";
 
-// A more descriptive Loading Spinner
+// Loading Spinner Component
 const LoadingSpinner = () => (
   <div className="flex flex-col justify-center items-center my-10 text-center">
     <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-500"></div>
@@ -21,7 +22,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// "How it Works" Component to guide the user
+// Steps Component
 const HowItWorks = () => {
   const steps = [
     {
@@ -42,25 +43,32 @@ const HowItWorks = () => {
   ];
 
   return (
-    <div className="my-12 text-center">
-      <h2 className="text-3xl font-bold text-gray-800 mb-2">How It Works</h2>
-      <p className="text-md text-gray-500 mb-8">
+    <div className="mt-20 text-center max-w-4xl mx-auto">
+      <motion.h2
+        className="text-4xl font-bold text-gray-900 mb-4"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        How It Works
+      </motion.h2>
+      <p className="text-md text-gray-600 mb-12">
         Get your feedback in three simple steps.
       </p>
-      <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+      <div className="grid md:grid-cols-3 gap-8">
         {steps.map((step, index) => (
           <motion.div
             key={index}
-            className="flex flex-col items-center"
+            className="bg-white rounded-xl shadow-md p-6 flex flex-col items-center border border-gray-100"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 * index }}
+            transition={{ duration: 0.5, delay: index * 0.2 }}
           >
             <div className="bg-indigo-100 text-indigo-600 rounded-full p-4 mb-4 text-4xl">
               {step.icon}
             </div>
-            <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
-            <p className="text-gray-600">{step.description}</p>
+            <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
+            <p className="text-gray-600 text-sm">{step.description}</p>
           </motion.div>
         ))}
       </div>
@@ -68,10 +76,11 @@ const HowItWorks = () => {
   );
 };
 
-function Home() {
+const Home = () => {
   const [analysis, setAnalysis] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useContext(UserContext);
 
   const handleAnalysisComplete = (analysisData) => {
     setAnalysis(analysisData);
@@ -84,30 +93,32 @@ function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans ">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 text-gray-800">
       {/* Header */}
-      <motion.header
-        className="bg-gray-800 text-white shadow-lg "
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
-      >
-        <div className="container mx-auto px-6 py-8 ">
-          <h1 className="text-5xl font-extrabold tracking-tight">
+      <Navbar/>
+
+      {/* Main Content */}
+      <main className="py-24 px-4 sm:px-6">
+        {/* Title Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mx-auto text-center max-w-2xl px-4 mb-16"
+        >
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
             AI Resume Analyzer
           </h1>
-          <p className="mt-2 text-lg text-gray-300">
-            Get instant, powerful feedback on your resume
+          <p className="mt-6 text-lg leading-8 text-gray-600">
+            Get instant, powerful feedback on your resume.
           </p>
-        </div>
-      </motion.header>
+        </motion.div>
 
-      <main className="container mx-auto px-6 py-10 ">
         <HowItWorks />
 
-        {/* Main Application Card */}
+        {/* Resume Upload Section */}
         <motion.div
-          className=" p-8 mt-12 max-w-3xl mx-auto flex flex-col justify-center items-center"
+          className="mt-12 mx-auto w-full max-w-3xl flex flex-col items-center px-4 space-y-6"
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
@@ -123,10 +134,7 @@ function Home() {
           {isLoading && <LoadingSpinner />}
 
           {error && (
-            <div
-              className="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 mt-6 rounded-md shadow-md flex items-center gap-4"
-              role="alert"
-            >
+            <div className="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 mt-6 rounded-md shadow-md flex items-center gap-4 w-full">
               <FiAlertTriangle className="text-2xl" />
               <div>
                 <p className="font-bold">An Error Occurred</p>
@@ -137,12 +145,12 @@ function Home() {
 
           <AnalysisDisplay analysis={analysis} />
 
-          {/* Button to allow starting a new analysis */}
+          {/* Reset Button */}
           {analysis && !isLoading && (
-            <div className="text-center mt-8">
+            <div className="text-center">
               <button
                 onClick={() => setAnalysis("")}
-                className="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-md"
+                className="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition duration-300 shadow-md"
               >
                 Analyze Another Resume
               </button>
@@ -150,14 +158,8 @@ function Home() {
           )}
         </motion.div>
       </main>
-
-      <footer className="text-center py-8 text-gray-500 text-sm">
-        <p>
-          &copy; Deadline Warrior Batch 1 (Korea Asean Digital Academy Bootcamp)
-        </p>
-      </footer>
     </div>
   );
-}
+};
 
 export default Home;

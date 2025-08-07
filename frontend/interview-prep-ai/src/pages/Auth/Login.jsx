@@ -149,7 +149,7 @@ const Login = () => {
             className="text-center"
           >
             <h1 className="text-2xl font-bold text-white mb-6">
-              Hired Or Fired
+              Hired Ready
             </h1>
             <h2 className="text-3xl font-bold text-white leading-tight mb-4">
               Welcome Back
@@ -272,15 +272,9 @@ const Login = () => {
           >
             <button
               onClick={handleGoogleLogin}
-              className="h-12 w-12 flex items-center justify-center border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+              className="cursor-pointer h-12 w-12 flex items-center justify-center border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
             >
               <FcGoogle size={24} />
-            </button>
-            <button className="h-12 w-12 flex items-center justify-center border border-gray-300 rounded-full text-blue-600 hover:bg-gray-50 transition-colors">
-              <FaFacebook size={24} />
-            </button>
-            <button className="h-12 w-12 flex items-center justify-center border border-gray-300 rounded-full text-gray-800 hover:bg-gray-50 transition-colors">
-              <FaApple size={24} />
             </button>
           </motion.div>
 
