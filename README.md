@@ -254,7 +254,7 @@ Fullstack Engineer
 
 **Aldiansyah Anugrah Ramadhan**  
 Frontend Developer
-- [LinkedIn](https://www.linkedin.com/in/Aldiansyah-ar)
+- [LinkedIn](https://www.linkedin.com/in/aldiansyah-anugrah-ramadhan-8ba0b821a)
 - [Portfolio](https://github.com/Aldiansyah-ar)
 - [Email](mailto:aldiansyahaldi621@gmail.com)
 
