@@ -93,26 +93,25 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Andi Daffa Liefalza**  
 Fullstack Engineer  
-- [LinkedIn](https://www.linkedin.com/in/yourprofile)
-- [Portfolio](https://your-portfolio.com)
-- [Email](mailto:your@email.com)
+- [LinkedIn](https://www.linkedin.com/in/andidaffaliefalza)
+- [Portfolio](https://daffaliefalza.netlify.app/)
+- [Email](mailto:liefalzaa@gmail.com)
 
 **Bintang Duinata**  
 Fullstack Engineer  
-- [LinkedIn](https://www.linkedin.com/in/yourprofile)
-- [Portfolio](https://your-portfolio.com)
-- [Email](mailto:your@email.com)
+- [LinkedIn](https://www.linkedin.com/in/bintangduinata08)
+- [Portfolio](https://portfoliobintangg.netlify.app/)
+- [Email](mailto:bintang.duinata31@gmail.com)
 
 **Aldiansyah Anugrah Ramadhan**  
-Fullstack Engineer  
+Frontend Developer
 - [LinkedIn](https://www.linkedin.com/in/Aldiansyah-ar)
 - [Portfolio](https://github.com/Aldiansyah-ar)
 - [Email](mailto:aldiansyahaldi621@gmail.com)
 
 **Hera Safitri**  
-Fullstack Engineer  
-- [LinkedIn](https://www.linkedin.com/in/yourprofile)
-- [Portfolio](https://your-portfolio.com)
-- [Email](mailto:your@email.com)
+UIUX & Frontend  
+- [LinkedIn](https://www.linkedin.com/in/hera-safitri-93a962266/)
+- [Email](mailto:herasafitri68@gmail.com)
 
 ---
