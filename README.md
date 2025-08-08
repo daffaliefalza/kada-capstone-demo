@@ -1,6 +1,6 @@
-# 🧠 Hire Ready Application
+# 🧠 Hired Ready Application
 
-A smart, all-in-one platform to help users prepare for technical  & Conceptual interviewswith AI-driven tools, voice-based mock interviews, resume insights, and real-time live coding practice.
+A smart, all-in-one platform to help users prepare for technical  & Conceptual interviews with AI-driven tools, voice-based mock interviews, resume insights, and real-time live coding practice.
 
 ---
 
