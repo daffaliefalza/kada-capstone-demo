@@ -176,6 +176,13 @@ Create a .env file in the backend directory with:
 
 ```
 
+Create a .env file in the frontend directory with:
+
+```bash
+    VITE_GEMINI_API_KEY=your_gemini_api_key
+
+```
+
 
 ## 🗂️ Notes
 
