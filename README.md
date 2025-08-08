@@ -159,6 +159,24 @@ export const BASE_URL = "http://localhost:8000";
 
 ---
 
+# **Configuration**
+
+Create a .env file in the backend directory with:
+
+```bash
+    JWT_SECRET_KEY = your_jwt_secret_key
+    GOOGLE_APP_PASSWORD = your_gmail_app_password
+    GOOGLE_CLIENT_ID = your_google_client_id
+    GOOGLE_SECRET = your_google_secret_key
+    GEMINI_API_KEY=your_gemini_api_key
+    EMAIL_HOST=smtp.example.com
+    EMAIL_PORT=587
+    EMAIL_USER=your_email@example.com
+    EMAIL_PASS=your_email_password
+
+```
+
+
 ## 🗂️ Notes
 
 - All `POST`/`GET` routes with protected content require an `Authorization: Bearer <token>` header.
