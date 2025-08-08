@@ -62,18 +62,142 @@ npm install
 npm run dev
 ```
 
+# 📡 API Documentation
+
+This document provides an overview of the available API endpoints used in the application, divided into key feature areas.
+
+> 🔐 All routes prefixed with `/api/...`. Some require authentication via JWT Bearer Token.
+
 ---
 
-## 🧪 Usage Guide
+## 🔑 Auth Routes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST   | `/api/auth/register` | Register a new user |
+| POST   | `/api/auth/login` | Login user |
+| GET    | `/api/auth/profile` | Get authenticated user profile |
+| POST   | `/api/auth/forgot-password` | Request password reset link |
+| POST   | `/api/auth/reset-password` | Reset user password |
+| POST   | `/api/auth/upload-image` | Upload user profile image |
+| GET    | `/api/auth/login/google` | Initiate Google OAuth login |
+| GET    | `/api/auth/login/google/callback` | Handle Google login callback |
 
 ---
 
-## 🧰 Folder Structure
+## 🤖 AI Routes
 
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST   | `/api/ai/generate-questions` | Generate interview questions based on input |
+| POST   | `/api/ai/generate-explanations` | Generate explanation for a concept |
+| POST   | `/api/ai/generate-quiz` | Generate quiz questions |
+
+---
+
+## 🧾 Resume Routes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST   | `/api/resumes/upload` | Upload a resume file for analysis |
+
+---
+
+## 💬 Question Routes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST   | `/api/questions/add` | Add AI-generated questions to a session |
+| POST   | `/api/questions/:id/pin` | Toggle pin on a question |
+| POST   | `/api/questions/:id/note` | Add/update note on a question |
+
+---
+
+## 📋 Session Routes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST   | `/api/sessions/create` | Create a new interview session |
+| GET    | `/api/sessions/my-sessions` | Retrieve all user's sessions |
+| GET    | `/api/sessions/:id` | Get a specific session by ID |
+| DELETE | `/api/sessions/:id` | Delete a session |
+
+---
+
+## 👨‍💻 Live Code Routes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST   | `/api/code/generate` | Generate a coding question |
+| GET    | `/api/code/difficulty/:difficulty` | Get coding questions by difficulty |
+| GET    | `/api/code/:questionId` | Get a specific coding question |
+| POST   | `/api/code/submit/:questionId` | Submit a solution for feedback |
+
+---
+
+## 🏆 Leaderboard
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/api/leaderboard` | Get leaderboard of top users |
+
+---
+
+## 🖼️ Uploads
+
+| Path | Description |
+|------|-------------|
+| `/uploads/<filename>` | Serve uploaded files (images, resumes, etc.) |
+
+---
+
+## 🌐 Base URL (Frontend)
+
+```js
+export const BASE_URL = "http://localhost:8000";
 ```
 
+---
+
+## 🗂️ Notes
+
+- All `POST`/`GET` routes with protected content require an `Authorization: Bearer <token>` header.
+- Google Auth callback handles client redirect and token transfer securely using postMessage.
+
+---
+
+## 📁 Related Frontend Pages
+
+These API endpoints are consumed in the following routes (based on `App.jsx`):
+
+- `/features/qna` – Q&A Generator
+- `/features/resume` – Resume Analyzer
+- `/features/mock-interview` – Voice-based Mock Interview
+- `/features/live-code` – Live Coding Practice & Submissions
+- `/features/leaderboard` – Leaderboard Page
+
+---
+
+## 🛠️ To Run Locally
+
+### Backend
+```bash
+cd backend
+npm install
+npm run dev
 ```
 
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## 📬 Contact
+For more details, reach out to the developer team.
 
 
 ## 🙌 Contributing
